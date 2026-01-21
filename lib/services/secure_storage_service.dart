@@ -24,6 +24,8 @@ class SecureStorageService {
 
   // Authentication keys
   static const String _keyAuthToken = 'auth_token';
+  static const String _keySites = 'visitor_sites';
+
   
 
   // ============================================================================
@@ -50,6 +52,7 @@ class SecureStorageService {
       return null;
     }
   }
+  
   /* exmaple, don't really need
   /// Delete authentication token
   static Future<void> deleteAuthToken() async {
@@ -62,6 +65,26 @@ class SecureStorageService {
     }
   }
   */
+  ///------------------------------------------ Auth Token 
+  /// Save visitor sites data (JSON string)
+    static Future<void> saveSites(String sitesJson) async {
+    try {
+      await _storage.write(key: _keySites, value: sitesJson);
+    } catch (e) {
+      debugPrint('Error saving sites: $e');
+    }
+  }
+
+  /// Get visitor sites data (JSON string)
+  static Future<String?> getSites() async {
+    try {
+      return await _storage.read(key: _keySites);
+    } catch (e) {
+      debugPrint('Error reading sites: $e');
+      return null;
+    }
+  }
+  ///------------------------------------------ Site Token 
 
   static Future<void> clearAll() async {
     try {

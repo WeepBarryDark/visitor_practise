@@ -3,8 +3,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:visitor_practise/core/constants/app_routes.dart';
 
 import 'package:visitor_practise/core/constants/server_link.dart';
+import 'package:visitor_practise/core/models/auth_nav_decision.dart';
 import 'package:visitor_practise/services/api_service.dart';
 
 import 'package:visitor_practise/services/secure_storage_service.dart';
@@ -73,7 +75,7 @@ class AuthController extends ChangeNotifier {
     //-------
     */
     try {
-      final token = await SecureStorageService.getAuthToken().timeout(const Duration(seconds: 50));
+      final token = await SecureStorageService.getAuthToken()._authController(const Duration(seconds: 50));
       final alreadyAuthed = token != null && token.isNotEmpty;
 
       _hasError = false;
@@ -211,8 +213,38 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  //Future<AuthNavDecision>
+  Future<AuthNavDecision> decideNextNavigation() async {
+    final savedToken = await SecureStorageService.getAuthToken();
+    if (savedToken == null || savedToken.isEmpty) {
+        regenerateLocalQr();
+        return const AuthNavDecision.backToRoot();
+    }
+
+    //Fetch sites - need to decide navigating to new site or dashboard = site_number != 1
+    try {
+      final sitesJson = await ApiService.fetchVisitorSites(savedToken).timeout(const Duration(seconds: 30));
+      final rawCount = sitesJson['count'];
+      final rawData = sitesJson['data'];
+      
+      final int sitesCount = rawCount is int ? rawCount : 0;
+      final List<dynamic> sites = rawData is List ? rawData : [];
+
+      await SecureStorageService.saveSites(jsonEncode(sites));
+
+      if (sites.length > 1 || sitesCount == 0 || sites.isEmpty) {
+        return const AuthNavDecision.go(AppRoutes.newSite);
+      } else {
+        return const AuthNavDecision.go(AppRoutes.dashboard);
+      }
+    } on TimeoutException {
+      debugPrint("Time out with fetch site API, please check your internet, App reset");
+      regenerateLocalQr();
+      return const AuthNavDecision.backToRoot();
+    } catch(e) {
+      debugPrint("error with fetch site API, please check your internet, App reset");
+      regenerateLocalQr();
+      return const AuthNavDecision.backToRoot();
+    }
+  }
     
-
-
 }
