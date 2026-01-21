@@ -25,8 +25,7 @@ class ApiService {
     try {
       // 1. Get device information
       final deviceInfo = await DeviceInfo.getDeviceInfo();
-      final finalDeviceName =
-          deviceName ?? deviceInfo['device_name'] ?? 'Unknown Device';
+      final finalDeviceName = deviceName ?? deviceInfo['device_name'] ?? 'Unknown Device';
 
       // 2. Prepare request payload
       final payload = {

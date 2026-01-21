@@ -75,7 +75,7 @@ class AuthController extends ChangeNotifier {
     //-------
     */
     try {
-      final token = await SecureStorageService.getAuthToken()._authController(const Duration(seconds: 50));
+      final token = await SecureStorageService.getAuthToken().timeout(const Duration(seconds: 50));
       final alreadyAuthed = token != null && token.isNotEmpty;
 
       _hasError = false;
@@ -201,7 +201,8 @@ class AuthController extends ChangeNotifier {
           await onApproved();
           return;
         } catch (e) {
-          debugPrint('Polling attempt failed: $e');
+          //
+          //debugPrint('Polling attempt failed: $e');
         } 
 
         await Future.delayed(pollInterval);
