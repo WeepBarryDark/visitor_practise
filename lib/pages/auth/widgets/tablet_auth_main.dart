@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 
-class AuthBody extends StatelessWidget {
-  const AuthBody({
+class TabletAuthMain extends StatelessWidget {
+  const TabletAuthMain({
     super.key,
     this.siteTitle,
     required this.logoUrlTop,

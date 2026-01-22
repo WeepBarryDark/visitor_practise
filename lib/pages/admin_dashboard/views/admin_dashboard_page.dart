@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:visitor_practise/core/responsive/aap_breakpoints.dart';
 import 'package:visitor_practise/pages/admin_dashboard/controller/admin_dashboard_controller.dart';
+import 'package:visitor_practise/pages/admin_dashboard/widgets/admin_dashboard_main.dart';
+import 'package:visitor_practise/shared_widgets/background_image_level.dart';
+import 'package:visitor_practise/shared_widgets/loading_circle_interface.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -15,7 +19,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   void initState() {
     super.initState();
     _dashboardController = AdminDashboardController(
-      onConfirmed: () async => _handleNavigation(),
+      onConfirmed: () async => _navigateKiosk(),
     );
 
     _dashboardController.initialise(
@@ -27,8 +31,22 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   _handleNavigation() async {
   }
 
+  Future<void> _navigateKiosk() async {
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    final width = MediaQuery.of(context).size.width;
+    final maxBodyWidth = AppBreakpoints.getContentWidth(width);
+    
+    if (!_dashboardController.isCheckingInitialDashboard) {
+      return const LoadingCircleInterface();
+    }
+
+    return BackgroundImageLevel(
+       CustomBackgroundUrl: _dashboardController.backgroundImageUrl,
+       mainWidget: AdminDashboardMain(adminDashboardController: _dashboardController, maxBodyWidth: maxBodyWidth)
+    );
   }
 }
+

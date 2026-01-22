@@ -68,6 +68,7 @@ flutter:
     - lib/assets/images/WorxSafety_Logo_NoShadow.png
     - lib/assets/images/Worx_PoweredBy_Logo_Mono.svg
     - lib/assets/images/Worx_PoweredBy_Logo_Mono.png
+    - lib/assets/images/worx_inductions_cover.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

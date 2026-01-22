@@ -11,10 +11,10 @@ import 'package:visitor_practise/pages/auth/widgets/tablet_auth_instruction.dart
 import 'package:visitor_practise/pages/auth/widgets/tablet_auth_status_bar.dart';
 import 'package:visitor_practise/pages/auth/widgets/tablet_auth_qr_box.dart';
 
-class TabletAuthCard extends StatelessWidget {
+class TabletAuthScaffold extends StatelessWidget {
   final AuthController controller;
 
-  const TabletAuthCard({
+  const TabletAuthScaffold({
     super.key,  //Constructors for public widgets should have a named 'key' parameter.
     required this.controller,
   });

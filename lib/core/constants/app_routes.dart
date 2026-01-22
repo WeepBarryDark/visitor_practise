@@ -12,4 +12,6 @@ class AppRoutes {
   static const String visitorDeliveries = '/delivery';
   static const String contractorSignIn = '/contractor-sign-in';
   static const String reprintBadge = '/reprint-badge'; //reprint badge for print issue or uploaded user from server not kiosk
+
+  static const String  defaultBackgroup = 'lib/assets/images/worx_inductions_cover.jpg';
 }
