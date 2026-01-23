@@ -44,7 +44,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     }
 
     return BackgroundImageLevel(
-       CustomBackgroundUrl: _dashboardController.backgroundImageUrl,
+       customBackgroundUrl: _dashboardController.backgroundImageUrl!,
        mainWidget: AdminDashboardMain(adminDashboardController: _dashboardController, maxBodyWidth: maxBodyWidth)
     );
   }
