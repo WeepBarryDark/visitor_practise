@@ -47,7 +47,7 @@ class AdminDashboardController extends ChangeNotifier{
   
 
   //TODO
-  bool _useCustomBackground = false;
+  final bool _useCustomBackground = false;
   String? backgroundImageUrl = "lib/assets/images/worx_inductions_cover.jpg";
 
   bool _useCustomLogo = true;
@@ -156,7 +156,6 @@ class AdminDashboardController extends ChangeNotifier{
       await onAlreadyRedirect ();
       return;
     }
-
   }
 
   void startTestPrint() {

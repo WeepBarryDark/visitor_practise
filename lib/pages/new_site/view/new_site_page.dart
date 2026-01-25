@@ -36,23 +36,7 @@ class _NewSitePageState extends State<NewSitePage> {
 
     return BackgroundImageLevel(
        customBackgroundUrl: _newSiteController.backgroundImageUrl!,
-       appBar: AppBar(
-                automaticallyImplyLeading: false,
-        title: const Text('Select Site'),
-        actions: isMedium
-            ? [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: SizedBox(
-                    width: isLarge ? 360 : width * 0.42,
-                    child: SearchField(),
-                  ),
-                ),
-              ]
-            : null,
-
-       ),
-       mainWidget: NewSiteMain(newSiterControllder: _newSiteController,maxBodyWidth:maxBodyWidth)
+       mainWidget: NewSiteMain(newSiteControllder: _newSiteController,maxBodyWidth:maxBodyWidth)
     );
   }
 }
