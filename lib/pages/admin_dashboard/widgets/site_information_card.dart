@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:visitor_practise/pages/admin_dashboard/controller/admin_dashboard_controller.dart';
-import 'package:visitor_practise/shared_widgets/site_info_row.dart';
+import 'package:visitor_practise/pages/admin_dashboard/controllers/admin_dashboard_controller.dart';
+import 'package:visitor_practise/shared_widgets/card_template_widgets/site_info_row.dart';
 
 class SiteInformationCard extends StatelessWidget {
   const SiteInformationCard({

@@ -5,7 +5,7 @@ import 'package:visitor_practise/services/secure_storage_service.dart';
 import 'package:visitor_practise/pages/auth/widgets/tablet_auth_main.dart';
 
 
-import 'package:visitor_practise/pages/auth/controller/auth_controller.dart';
+import 'package:visitor_practise/pages/auth/controllers/auth_controller.dart';
 import 'package:visitor_practise/pages/auth/widgets/tablet_auth_scaffold.dart';
 
 class AuthPage extends StatefulWidget {

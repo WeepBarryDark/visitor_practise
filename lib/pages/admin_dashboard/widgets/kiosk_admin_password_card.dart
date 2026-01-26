@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/theme/app_theme.dart';
-import 'package:visitor_practise/pages/admin_dashboard/controller/admin_dashboard_controller.dart';
+import 'package:visitor_practise/pages/admin_dashboard/controllers/admin_dashboard_controller.dart';
 
 class KioskAdminPasswordCard extends StatelessWidget {
   const KioskAdminPasswordCard({

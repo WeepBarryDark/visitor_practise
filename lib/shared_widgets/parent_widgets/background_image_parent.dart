@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class BackgroundImageLevel extends StatelessWidget {
-  const BackgroundImageLevel({
+class BackgroundImageParent extends StatelessWidget {
+  const BackgroundImageParent({
     super.key,
     required this.customBackgroundUrl,
     required this.mainWidget,

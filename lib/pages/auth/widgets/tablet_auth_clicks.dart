@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/theme/app_theme.dart';
-import 'package:visitor_practise/pages/auth/controller/auth_controller.dart';
+import 'package:visitor_practise/pages/auth/controllers/auth_controller.dart';
 
 class TabletAuthClicks extends StatelessWidget {
 

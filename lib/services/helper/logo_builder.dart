@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 /// Helper function to build logo widgets (SVG or PNG, network or asset)
-Widget? buildLogo(String? url, double height, {Uint8List? bytes}) {
+Widget? LogoBuilder(String? url, double height, {Uint8List? bytes}) {
   if (bytes != null && bytes.isNotEmpty) {
     final snippet = String.fromCharCodes(bytes.take(64));
     final isSvg = snippet.contains('<svg') || snippet.contains('<?xml');

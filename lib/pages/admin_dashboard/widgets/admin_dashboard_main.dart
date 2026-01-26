@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:visitor_practise/pages/admin_dashboard/controller/admin_dashboard_controller.dart';
+import 'package:visitor_practise/pages/admin_dashboard/controllers/admin_dashboard_controller.dart';
 import 'package:visitor_practise/pages/admin_dashboard/widgets/badget_preview_card.dart';
 import 'package:visitor_practise/pages/admin_dashboard/widgets/kiosk_admin_password_card.dart';
 import 'package:visitor_practise/pages/admin_dashboard/widgets/print_status_card.dart';

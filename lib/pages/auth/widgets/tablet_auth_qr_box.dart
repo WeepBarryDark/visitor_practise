@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:visitor_practise/pages/auth/controller/auth_controller.dart';
+import 'package:visitor_practise/pages/auth/controllers/auth_controller.dart';
 
 import 'package:qr_flutter/qr_flutter.dart';
 

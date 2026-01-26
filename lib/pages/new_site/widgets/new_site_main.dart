@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:visitor_practise/pages/new_site/controller/new_siter_controllder.dart';
-import 'package:visitor_practise/shared_widgets/search_field.dart';
-import 'package:visitor_practise/shared_widgets/site_card.dart';
+import 'package:visitor_practise/pages/new_site/controllers/new_siter_controllder.dart';
+import 'package:visitor_practise/shared_widgets/field_input_widgets/search_field.dart';
+import 'package:visitor_practise/shared_widgets/card_template_widgets/site_card.dart';
 
 class NewSiteMain extends StatelessWidget {
   const NewSiteMain({

@@ -9,7 +9,12 @@ import 'package:visitor_practise/core/theme/app_theme.dart';
 //pages
 import 'package:visitor_practise/pages/auth/views/auth_page.dart';
 import 'package:visitor_practise/pages/admin_dashboard/views/admin_dashboard_page.dart';
-import 'package:visitor_practise/pages/new_site/view/new_site_page.dart';
+import 'package:visitor_practise/pages/kiosk_visitor_sign_in/views/kiosk_visitor_sign_in_page.dart';
+import 'package:visitor_practise/pages/new_site/views/new_site_page.dart';
+
+import 'package:visitor_practise/pages/new_site/views/new_site_page.dart';
+
+import 'package:visitor_practise/pages/kiosk_dashboard/views/kiosk_dashboard_page.dart';
 
 void main() {
   runApp(const WorxVistor());
@@ -29,7 +34,7 @@ class WorxVistor extends StatelessWidget {
       initialRoute: '/',
 
       routes: {
-        '/': (context) => const NewSitePage(),
+        '/': (context) => const KioskVisitorSignInPage(),
         /*
         '/': (context) => const AuthPage(),
         AppRoutes.dashboard: (context) => const AdminDashboardPage(),
