@@ -20,6 +20,7 @@ class _KioskDeliveriesPageState extends State<KioskDeliveriesPage> {
   void initState() {
     super.initState();
     _kioskDeliveriesController = KioskDeliveriesController();
+    _kioskDeliveriesController.orgCtrl = TextEditingController();
   }
 
 

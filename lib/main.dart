@@ -9,7 +9,12 @@ import 'package:visitor_practise/core/theme/app_theme.dart';
 //pages
 import 'package:visitor_practise/pages/auth/views/auth_page.dart';
 import 'package:visitor_practise/pages/admin_dashboard/views/admin_dashboard_page.dart';
+import 'package:visitor_practise/pages/kiosk_deliveries/views/kiosk_deliveries_page.dart';
+import 'package:visitor_practise/pages/kiosk_user_sign_in/views/kiosk_user_sign_in_page.dart';
+import 'package:visitor_practise/pages/kiosk_visitor_badge_retrieve/views/kiosk_visitor_badge_retrieve_page.dart';
+import 'package:visitor_practise/pages/kiosk_visitor_final_badge/views/kiosk_visitor_final_badge_page.dart';
 import 'package:visitor_practise/pages/kiosk_visitor_sign_in/views/kiosk_visitor_sign_in_page.dart';
+import 'package:visitor_practise/pages/kiosk_visitor_sign_out/views/kiosk_visitor_sign_out_page.dart';
 import 'package:visitor_practise/pages/kiosk_visitor_site_questions/views/kiosk_visitor_site_questions_page.dart';
 import 'package:visitor_practise/pages/new_site/views/new_site_page.dart';
 
@@ -35,7 +40,7 @@ class WorxVistor extends StatelessWidget {
       initialRoute: '/',
 
       routes: {
-        '/': (context) => const KioskVisitorSiteQuestionPage(),
+        '/': (context) => const KioskVisitorFinalBadgePage(),
         /*
         '/': (context) => const AuthPage(),
         AppRoutes.dashboard: (context) => const AdminDashboardPage(),

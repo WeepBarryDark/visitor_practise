@@ -23,16 +23,19 @@ class KioskGuardParent extends StatefulWidget {
 
 class _KioskGuardParentState extends State<KioskGuardParent> with WidgetsBindingObserver {
   DateTime? _lastGestureWarningTime;
+  bool _isDisposed = false;
 
   @override
   void initState() {
     super.initState();
+    _isDisposed = false;
     WidgetsBinding.instance.addObserver(this);
     _KioskModeManager.acquire();
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
     WidgetsBinding.instance.removeObserver(this);
     _KioskModeManager.release();
     super.dispose();
@@ -40,12 +43,18 @@ class _KioskGuardParentState extends State<KioskGuardParent> with WidgetsBinding
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 防止在 widget 被销毁后调用
+    if (_isDisposed || !mounted) return;
+
     if (state == AppLifecycleState.resumed) {
       _KioskModeManager.reapply();
     }
   }
 
   void _showExitWarning() {
+    // 防止在 widget 被销毁后调用
+    if (_isDisposed || !mounted) return;
+
     // Throttle warnings to avoid spam (show at most once per 3 seconds)
     final now = DateTime.now();
     if (_lastGestureWarningTime != null &&
@@ -120,7 +129,11 @@ class _KioskModeManager {
       _refCount--;
     }
     if (_refCount == 0) {
-      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      try {
+        await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      } catch (_) {
+        // 忽略热重启期间的错误
+      }
     }
   }
 
@@ -131,6 +144,10 @@ class _KioskModeManager {
   }
 
   static Future<void> _applyImmersive() async {
-    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    try {
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    } catch (_) {
+      // 忽略热重启期间的错误
+    }
   }
 }

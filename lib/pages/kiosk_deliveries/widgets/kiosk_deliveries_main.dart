@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/pages/kiosk_deliveries/controllers/kiosk_deliveries_controller.dart';
 import 'package:visitor_practise/shared_widgets/card_template_widgets/kiosk_body.dart';
+import 'package:visitor_practise/shared_widgets/field_input_widgets/kiosk_field.dart';
 
 class KioskDeliveriesMain extends StatelessWidget {
   const KioskDeliveriesMain({
@@ -16,7 +17,7 @@ class KioskDeliveriesMain extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: AlignmentGeometry.topCenter,
+      alignment: AlignmentGeometry.center,
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
         child: ConstrainedBox(
@@ -31,22 +32,51 @@ class KioskDeliveriesMain extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Please answer the following before completing sign in.', style: Theme.of(context).textTheme.titleMedium,),
-                    const SizedBox(height: 16),
-                    //---------------------------------------site question here
-          
-                    //----------------------------------------site question end
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        children: [
+                          Text('Delivery Details', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600)),
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 20),
-                    Row(
+                    Form(
+                      //key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          KioskField(
+                            controller: kioskDeliveriesController.orgCtrl, 
+                            title: 'Delivery Company',
+                            required: true,
+                            helpText: 'This name appears in the text/email sent to the supervisor.',
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Company name is required';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                      )
+                    ),
+                                        Row(
                       children: [
                         OutlinedButton.icon(
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () => Navigator.pop(context), // return to kiosk dashboard
                           label: const Text('Back'),
                           icon: const Icon(Icons.arrow_back),
                         ),
                         const Spacer(),
                         FilledButton(
-                          onPressed: kioskDeliveriesController.submitting ? null : () => {print('jump to new site with all data')},
+                          onPressed: kioskDeliveriesController.submitting ? null : () => { print('nothing')},
                           child: kioskDeliveriesController.submitting
                               ? const SizedBox(
                                   height: 18,

@@ -16,7 +16,7 @@ class KioskVisitorSiteQuestionsMain extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: AlignmentGeometry.topCenter,
+      alignment: AlignmentGeometry.center,
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
         child: ConstrainedBox(
@@ -46,7 +46,7 @@ class KioskVisitorSiteQuestionsMain extends StatelessWidget {
                         ),
                         const Spacer(),
                         FilledButton(
-                          onPressed: kioskVisitorSiteQuestionsController.submitting ? null : () => {print('jump to new site with all data')},
+                          onPressed: kioskVisitorSiteQuestionsController.submitting ? null : () => {print('jump to print page with all data')},
                           child: kioskVisitorSiteQuestionsController.submitting
                               ? const SizedBox(
                                   height: 18,
