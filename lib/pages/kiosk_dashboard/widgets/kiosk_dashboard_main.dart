@@ -24,7 +24,8 @@ class KioskDashboardMain extends StatelessWidget {
            constraints: BoxConstraints(maxWidth: maxBodyWidth),
           child: KioskBody(
             headLogoUrl: kioskController.logoImageUrl, 
-            siteTitle: "test", printReady: true, 
+            siteTitle: "test", 
+            printReady: true, 
             supervisorName: "Barry Wang",
             menuContent: Card(
               child: Padding(

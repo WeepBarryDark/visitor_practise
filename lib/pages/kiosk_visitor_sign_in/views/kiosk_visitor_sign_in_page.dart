@@ -34,7 +34,7 @@ class _KioskVisitorSignInPageState extends State<KioskVisitorSignInPage> {
     
     return BackgroundImageParent(
        customBackgroundUrl: _kioskVisitorSignIncontroller.backgroundImageUrl,
-       mainWidget: KioskGuardParent(child:KioskVisitorSignInMain(kioskController: _kioskVisitorSignIncontroller,maxBodyWidth:maxBodyWidth)),
+       mainWidget: KioskGuardParent(child:KioskVisitorSignInMain(kioskVisitorSignInController: _kioskVisitorSignIncontroller,maxBodyWidth:maxBodyWidth)),
     );
   }
 }
