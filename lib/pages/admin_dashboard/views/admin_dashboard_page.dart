@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:visitor_practise/core/navigation/main_scaffold.dart';
 import 'package:visitor_practise/core/responsive/aap_breakpoints.dart';
 import 'package:visitor_practise/pages/admin_dashboard/controllers/admin_dashboard_controller.dart';
 import 'package:visitor_practise/pages/admin_dashboard/widgets/admin_dashboard_main.dart';
@@ -43,9 +44,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       return const LoadingCircleInterface();
     }
 
-    return BackgroundImageParent(
-       customBackgroundUrl: _dashboardController.backgroundImageUrl!,
-       mainWidget: AdminDashboardMain(adminDashboardController: _dashboardController, maxBodyWidth: maxBodyWidth)
+    return AppShell( 
+      title: 'Admin Dashboard',
+      child:  BackgroundImageParent(
+        customBackgroundUrl: _dashboardController.backgroundImageUrl!,
+        mainWidget: AdminDashboardMain(adminDashboardController: _dashboardController, maxBodyWidth: maxBodyWidth)
+      ),
     );
   }
 }

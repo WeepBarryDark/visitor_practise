@@ -1,5 +1,5 @@
-import 'dart:convert';
 import 'dart:io';
+//import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -52,7 +52,7 @@ class DeviceInfo {
        deviceData['platform'] = 'unknown';
     }
 
-    debugPrint(jsonEncode(deviceData));
+    //debugPrint(jsonEncode(deviceData));
     return deviceData;
   }
 

@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:visitor_practise/core/theme/app_theme.dart';
+import 'package:visitor_practise/pages/auth/controllers/auth_controller.dart';
+import 'package:visitor_practise/pages/auth/widgets/tablet_auth_clicks.dart';
+import 'package:visitor_practise/pages/auth/widgets/tablet_auth_header.dart';
+import 'package:visitor_practise/pages/auth/widgets/tablet_auth_instruction.dart';
+import 'package:visitor_practise/pages/auth/widgets/tablet_auth_status_bar.dart';
+import 'package:visitor_practise/pages/auth/widgets/tablet_auth_qr_box.dart';
 
 
 class TabletAuthMain extends StatelessWidget {
@@ -7,13 +14,13 @@ class TabletAuthMain extends StatelessWidget {
     this.siteTitle,
     required this.logoUrlTop,
     required this.logoUrlBottom,
-    required this.menuContent,
+    required this.authController,
   });
 
   final String? siteTitle;
   final String logoUrlTop;
   final String logoUrlBottom;
-  final Widget menuContent;
+  final AuthController authController;
 
 
   @override
@@ -48,7 +55,28 @@ class TabletAuthMain extends StatelessWidget {
             const SizedBox(height: 16,),
 
             // log in actually functions
-            menuContent,
+            Container(
+              padding: const EdgeInsets.all(16),
+              //container + decoration create a blue warp
+              decoration: BoxDecoration(
+                color: AppTheme.primaryBlue.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.2), width: 1.5,),
+              ),
+              child: Column(
+                children: [
+                  const TabletAuthHeader(),
+                  const SizedBox(height: 16),
+                  const TabletAuthInstruction(),
+                  const SizedBox(height: 16),
+                  TabletAuthQrBox(controller: authController,),
+                  const SizedBox(height: 16),
+                  TabletAuthStatusBar(controller: authController,),
+                  const SizedBox(height: 16),
+                  TabletAuthClicks(controller: authController,),
+                ],
+              ),
+            ),
 
             const SizedBox(height: 24,),
             const Divider(),

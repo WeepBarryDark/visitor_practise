@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/responsive/aap_breakpoints.dart';
-import 'package:visitor_practise/services/secure_storage_service.dart';
 
 import 'package:visitor_practise/pages/auth/widgets/tablet_auth_main.dart';
-
-
 import 'package:visitor_practise/pages/auth/controllers/auth_controller.dart';
-import 'package:visitor_practise/pages/auth/widgets/tablet_auth_scaffold.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -57,7 +53,6 @@ class _AuthPageState extends State<AuthPage> {
         ),
       );
     }
-
   }
 
 
@@ -84,7 +79,7 @@ class _AuthPageState extends State<AuthPage> {
                   siteTitle: 'Worx Kiosk - Visitor Management',
                   logoUrlTop: 'lib/assets/images/WorxSafety_Logo_NoShadow.png',
                   logoUrlBottom: 'lib/assets/images/Worx_PoweredBy_Logo_Mono.png',
-                  menuContent: TabletAuthScaffold(controller: _authController)
+                  authController: _authController,
               ),
             ),
           );

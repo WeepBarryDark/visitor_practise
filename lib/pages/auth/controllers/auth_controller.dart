@@ -22,6 +22,9 @@ class AuthController extends ChangeNotifier {
   bool _isCheckingInitialAuth = true;
   bool get isCheckingInitialAuth => _isCheckingInitialAuth;
 
+  bool _hasError = false;
+  bool get hasError => _hasError;
+
   String? _uuid;
   String? get uuid => _uuid;
 
@@ -37,12 +40,9 @@ class AuthController extends ChangeNotifier {
   String _statusMessage = 'Initializing...';
   String get statusMessage => _statusMessage;
 
-  bool _hasError = false;
-  bool get hasError => _hasError;
-
 
   // ---------------- Bootstrapping ----------------
-  //
+  //Step 1 
   Future<void> bootstrap({
     required Future<void> Function() onAlreadyAuthed,
   }) async {
@@ -68,11 +68,7 @@ class AuthController extends ChangeNotifier {
   /// Returns TRUE if authenticated, FALSE if not.
   Future<bool> checkExistingAuth() async {
     /*
-    // bypass for now
-    _hasError = false;
-    _statusMessage = 'Bypass this function';
-    return false;
-    //-------
+    //check if there is already an Auth Token, if so, jump to dashboard
     */
     try {
       final token = await SecureStorageService.getAuthToken().timeout(const Duration(seconds: 50));
@@ -98,7 +94,7 @@ class AuthController extends ChangeNotifier {
 
   void generateLocalQr() {
     try {
-      const uuidGen = Uuid();
+      const uuidGen = Uuid(); // Universally Unique Identifier  128 bit - 122 random
       final newUuid = uuidGen.v4();
 
       _uuid = newUuid;
@@ -119,6 +115,7 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<void> regenerateLocalQr() async {
+    //basically reset the session
     _hasError = false;
     _statusMessage = "Generating new QR session...";
     notifyListeners();
@@ -129,8 +126,8 @@ class AuthController extends ChangeNotifier {
 
       _uuid = newUuid;
       _qrUrl = ServerLink.newSessionURL + newUuid;
+      _statusMessage = 'Initializing...';
 
-      _statusMessage = "Step 1: Please scan the QR code.";
       //debugPrint(_qrUrl); https://app.worxsafety.com.au/qr-login/bb0a83b2-401c-446a-9348-c461bc8c1396
       _hasError = false;
 
@@ -138,7 +135,7 @@ class AuthController extends ChangeNotifier {
 
       _isPollingStarted = false;
       _isPolling = false;
-      _statusMessage = 'Initializing...';
+      _statusMessage = "Step 1: Please scan the QR code.";
       _hasError = false;
 
       notifyListeners();
@@ -158,6 +155,7 @@ class AuthController extends ChangeNotifier {
       return;
     }
 
+    //one more guard 
     if (_isPollingStarted) return;
 
     //change UI

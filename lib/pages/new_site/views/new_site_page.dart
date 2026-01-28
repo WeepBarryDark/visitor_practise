@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:visitor_practise/core/navigation/main_scaffold.dart';
 import 'package:visitor_practise/core/responsive/aap_breakpoints.dart';
 import 'package:visitor_practise/pages/new_site/controllers/new_siter_controllder.dart';
 import 'package:visitor_practise/pages/new_site/widgets/new_site_main.dart';
@@ -31,9 +32,12 @@ class _NewSitePageState extends State<NewSitePage> {
       return const LoadingCircleInterface();
     }
 
-    return BackgroundImageParent(
+    return AppShell(
+      title: 'Sites List',
+      child: BackgroundImageParent(
        customBackgroundUrl: _newSiteController.backgroundImageUrl,
        mainWidget: NewSiteMain(newSiteControllder: _newSiteController,maxBodyWidth:maxBodyWidth)
+      ),
     );
   }
 }

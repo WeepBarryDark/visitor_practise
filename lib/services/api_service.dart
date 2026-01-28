@@ -75,6 +75,7 @@ class ApiService {
         throw Exception('Invalid setup code. Please scan a valid QR code.');
       } else {
         throw Exception(
+          //405 Method Not Allowed - server knows the request method, but the target resource doesn't support this method. 
           'Error code: ${response.statusCode}, please contact developer.',
         );
       }
