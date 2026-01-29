@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class BackgroundImageParent extends StatelessWidget {
   const BackgroundImageParent({
     super.key,
+    required this.webNotAsset,
     required this.customBackgroundUrl,
     required this.mainWidget,
     this.appBar,
   });
 
+  final bool webNotAsset;
   final String customBackgroundUrl;
   final Widget mainWidget;
   final PreferredSizeWidget? appBar;
@@ -17,14 +19,16 @@ class BackgroundImageParent extends StatelessWidget {
     return Scaffold(
       appBar: appBar,
       body: Container(
-        decoration: 
-          BoxDecoration(
-            image: DecorationImage(image: NetworkImage(customBackgroundUrl),
+        decoration:BoxDecoration(
+          image: DecorationImage(
+            image: webNotAsset
+                ? NetworkImage(customBackgroundUrl)
+                : AssetImage(customBackgroundUrl),
             fit: BoxFit.cover,
             opacity: 0.9,
-            ),
           ),
-          child: mainWidget,
+        ),
+        child: mainWidget,
       ),
     );
   }

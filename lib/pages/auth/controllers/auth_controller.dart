@@ -199,8 +199,7 @@ class AuthController extends ChangeNotifier {
           await onApproved();
           return;
         } catch (e) {
-          //
-          //debugPrint('Polling attempt failed: $e');
+          debugPrint('Polling attempt failed: $e');
         } 
 
         await Future.delayed(pollInterval);
@@ -233,6 +232,9 @@ class AuthController extends ChangeNotifier {
       if (sites.length > 1 || sitesCount == 0 || sites.isEmpty) {
         return const AuthNavDecision.go(AppRoutes.newSite);
       } else {
+        //if only have one site -> save as the selectedSite -> go dashboard
+        final singleSite = sites.first as Map<String, dynamic>;
+        await SecureStorageService.saveSelectedSite(jsonEncode(singleSite));
         return const AuthNavDecision.go(AppRoutes.dashboard);
       }
     } on TimeoutException {

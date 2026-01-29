@@ -1,24 +1,29 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:visitor_practise/core/constants/app_routes.dart';
+import 'package:visitor_practise/core/constants/server_link.dart';
 import 'package:visitor_practise/core/models/paper_type.dart';
+import 'package:visitor_practise/core/models/site_item.dart';
+import 'package:visitor_practise/services/api_service.dart';
+import 'package:visitor_practise/services/secure_storage_service.dart';
 
 class AdminDashboardController extends ChangeNotifier{
-  final Future<void> Function() onConfirmed;
-
-  AdminDashboardController({
-    required this.onConfirmed,
-  });
 
   //----------------------attribute -----------------
   bool _isCheckingInitialDashboard = true;
   bool get isCheckingInitialDashboard => _isCheckingInitialDashboard;
 
+  bool _hasError = false;
+  bool get hasError => _hasError;
+
+  String _statusMessage = "";
+
   bool _wasOnKiosk = false;
   bool get wasOnKiosk => _wasOnKiosk;
-
-  bool _obscureAdminPin = true;
-  bool get obscureAdminPin => _obscureAdminPin;
 
   bool _isConnectingPrinter = true;
   bool get isConnectingPrinter => _isConnectingPrinter;
@@ -46,18 +51,17 @@ class AdminDashboardController extends ChangeNotifier{
   bool get hasTestPrinted => _hasTestPrinted;
   
 
-  //TODO
-  final bool _useCustomBackground = false;
-  String? backgroundImageUrl = "lib/assets/images/worx_inductions_cover.jpg";
+  bool _useCustomBackground = false;
+  bool get useCustomBackground => _useCustomBackground;
+  String backgroundImage = ServerLink.defaultBackgroup;
 
-  bool _useCustomLogo = true;
-  String? LogoImageUrl = "lib/assets/images/WorxSafety_Logo_NoShadow.png";
-
+  bool _useCustomLogo = false;
+  bool get useCustomLogo => _useCustomLogo;
+  String logoImageUrl = ServerLink.defaultHeadLogo;
   //-------------------------------------------------require information
 
-  //Site Information Card
-  Uint8List? clientLogoBytes;
-  String? clientName;
+  //Site Information
+  String? clientDisplayName;
 
   //Print Information Card
   String printerModel = 'test printer';
@@ -80,6 +84,19 @@ class AdminDashboardController extends ChangeNotifier{
   bool reqPersonVisiting = false;//list
   bool reqSignInTime = false;//lock format
   bool reqVisitorPhoto = false;//take a photo
+
+  //Current Site --------------------------------------------------------------data
+  Map<String, dynamic>? siteMap;
+
+  // ====== Admin PIN ======
+  final TextEditingController adminPinCtrl = TextEditingController();
+  bool obscureAdminPin = true;
+  bool savingAdminPin = false;
+  bool loadingAdminPin = true;
+  String adminPin = '1234';
+  String? adminPinError;
+  String? adminPinStatus;
+
 
   void setReqPhone(bool? v) {
     if (v == null) return;
@@ -144,18 +161,72 @@ class AdminDashboardController extends ChangeNotifier{
   }
 
   Future<void> initialise ({
-    required Future<void> Function() onAlreadyRedirect,
+    required Future<void> Function(String nextRoute) onAlreadyRedirect,
   }) async {
-    //Get background image 
-    backgroundImageUrl = _useCustomBackground
-      ? "https://storage.worxsafety.com.au/site/public/7/60dbb67c245b3_bg-masthead.jpg"
-      : 'lib/assets/images/worx_inductions_cover.jpg';
+      final savedToken = await  SecureStorageService.getAuthToken().timeout(const Duration(seconds: 5));
+      if (savedToken == null || savedToken.isEmpty) {
+         throw Exception('No token');
+      }
+      //if no select -> Jump to site select page  
+      final savedSelectedSite = await  SecureStorageService.getSelectedSite().timeout(const Duration(seconds: 5));
+      if (savedSelectedSite == null || savedSelectedSite.isEmpty) {
+        await onAlreadyRedirect(AppRoutes.newSite);
+        return;
+      }
+      siteMap = jsonDecode(savedSelectedSite);
+      //debugPrint(savedSelectedSite);
+      //{"id":"1","title":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","address":"50 Redman Ave1, THIRROUL, NSW, 25001, Australia","active":true,"site_manager":"","site_supervisor":"{id: 25214, name: Barry Weep Admin}","created_at":"2026-01-29T15:02:05.000638","updated_at":"2026-01-29T15:02:05.000655"}
+      // check whether redirect to Kiosk Directly----------
+      final alreadyAuthed = await checkExistingAuth();
+      if (alreadyAuthed) {
+        await onAlreadyRedirect(AppRoutes.visitorKiosk);
+        return;
+      }
+      //-------------------------------------------------end
+      final clientJson = await ApiService.fetchVisitorClient(savedToken).timeout(const Duration(seconds: 5));
+      //debugPrint(jsonEncode(clientJson));
+      //{"logo":"https://storage.worxsafety.com.au/site/public/22080/pblogo.svg","background_image":"https://storage.worxsafety.com.au/site/public/7/60dbb67c245b3_bg-masthead.jpg","slug":"pinkbatteries","name":"HUGH ARTHUR TORNEY","trading_name":"Pink Batteries"}
+      await SecureStorageService.saveClient(jsonEncode(clientJson));
 
-    final onRedirect = await checkRedirect();
-    if (onRedirect) {
-      await onAlreadyRedirect ();
-      return;
-    }
+      final clientLogo = clientJson['logo'];
+      final clientBackgroundImage = clientJson['background_image'];
+      final clientTradingName = clientJson['trading_name'];
+      final clientName = clientJson['name'];
+      final clientSlug = clientJson['slug'];
+
+      if (clientTradingName == null || clientName == null || clientSlug == null) {
+        throw Exception('No client essential data collected');
+      }
+      //for welcome headeer
+      clientDisplayName = clientTradingName;
+
+      if (clientLogo != null) {
+        _useCustomLogo = true;
+        logoImageUrl = clientLogo;
+      }
+
+      if (clientBackgroundImage != null) {
+        _useCustomBackground = true;
+        backgroundImage = clientBackgroundImage;
+      }
+
+      //everytime refetch sites
+      final sitesJson = await ApiService.fetchVisitorSites(savedToken).timeout(const Duration(seconds: 10));
+      //debugPrint(jsonEncode(sitesJson));
+      //{"count ":38,"data":[{"id":1,"name":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc",
+      //"address":"50 Redman Ave1, THIRROUL, NSW, 25001, Australia","streetAddress":"50 Redman Ave1",
+      //"suburb":null,"state":"NSW","postcode":"25001","country":"Australia","latitude":-34.27741962,
+      //"longitude":150.95425334,"contact":"04057654387","managerName":"Luke One1","customerName":"Test CLIENT1","customerContact":"0400000123",
+      //"supervisor":{"id":25214,"name":"Barry Weep Admin"},"createdOn":"2021-08-10T03:59:45+00:00"} ...
+      await SecureStorageService.saveSites(jsonEncode(sitesJson));
+
+      final adminSavedPin = await SecureStorageService.getAdminPin().timeout(const Duration(seconds: 10));
+      if (adminSavedPin != null && adminSavedPin.isNotEmpty) {
+        adminPin = adminSavedPin;
+      }
+      _isCheckingInitialDashboard = false;
+      notifyListeners();
+
   }
 
   void startTestPrint() {
@@ -164,13 +235,13 @@ class AdminDashboardController extends ChangeNotifier{
   
   void changePasswordVisibility () {
     //display the password
-     _obscureAdminPin = !_obscureAdminPin;
+     obscureAdminPin = !obscureAdminPin;
      notifyListeners();
   }
 
   void allowPrintBadge(bool v) {
     //display the password
-     _obscureAdminPin = !_obscureAdminPin;
+     obscureAdminPin = !obscureAdminPin;
      notifyListeners();
   }
 
@@ -188,4 +259,37 @@ class AdminDashboardController extends ChangeNotifier{
     return false;
   }
 
+    Future<bool> checkExistingAuth() async {
+    /*
+    //check if there is already an Auth Token
+    //if last saved location is kiosk dashboard && token, selected site, setting are not empty
+    */
+    try {
+      final lastAccess = await SecureStorageService.getLastAccess().timeout(const Duration(seconds: 50));
+      if (lastAccess == 'kiosk_dashboard')
+      {
+        //TODO
+        final token = await SecureStorageService.getAuthToken().timeout(const Duration(seconds: 50));
+        final alreadyAuthed = token != null && token.isNotEmpty;
+
+        _hasError = false;
+        notifyListeners();
+
+        return alreadyAuthed; // return true -> jump to kiosk dashboard
+      }
+      return false;
+    } on TimeoutException {
+      // not sure what to do now, when an error and timeout
+      _hasError = true;
+      _statusMessage = 'Request timed out. Please try again.';
+      notifyListeners();
+      return false;
+    } catch (e) {
+      // not sure what to do now, when an error and timeout
+      _hasError = true;
+      _statusMessage = 'Error while checking existing login. Please start a new session.';
+      notifyListeners();
+      return false;
+    }
+  }
 }

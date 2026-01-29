@@ -34,6 +34,7 @@ class _KioskDeliveriesPageState extends State<KioskDeliveriesPage> {
     }
     
     return BackgroundImageParent(
+       webNotAsset: false,
        customBackgroundUrl: _kioskDeliveriesController.backgroundImageUrl,
        mainWidget: KioskGuardParent(child:KioskDeliveriesMain(kioskDeliveriesController: _kioskDeliveriesController,maxBodyWidth:maxBodyWidth)),
     );

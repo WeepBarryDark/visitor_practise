@@ -34,8 +34,9 @@ class _KioskVisitorBadgeRetrievePageState extends State<KioskVisitorBadgeRetriev
     }
     
     return BackgroundImageParent(
-       customBackgroundUrl: _kioskVisitorBadgeRetrieveController.backgroundImageUrl,
-       mainWidget: KioskGuardParent(child:KioskVisitorBadgeRetrieveMain(kioskVisitorBadgeRetrieveController: _kioskVisitorBadgeRetrieveController,maxBodyWidth:maxBodyWidth)),
+        webNotAsset: false,
+        customBackgroundUrl: _kioskVisitorBadgeRetrieveController.backgroundImageUrl,
+        mainWidget: KioskGuardParent(child:KioskVisitorBadgeRetrieveMain(kioskVisitorBadgeRetrieveController: _kioskVisitorBadgeRetrieveController,maxBodyWidth:maxBodyWidth)),
     );
   }
 }

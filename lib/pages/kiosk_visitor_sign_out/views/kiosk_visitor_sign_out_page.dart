@@ -33,6 +33,7 @@ class _KioskVisitorSignOutPageState extends State<KioskVisitorSignOutPage> {
     }
     
     return BackgroundImageParent(
+       webNotAsset: false,
        customBackgroundUrl: _kioskVisitorSignOutController.backgroundImageUrl,
        mainWidget: KioskGuardParent(child:KioskVisitorSignOutMain(kioskVisitorSignOutController: _kioskVisitorSignOutController,maxBodyWidth:maxBodyWidth)),
     );

@@ -1,4 +1,9 @@
 class ServerLink {
+  // Local link default
+  static const String defaultBackgroup = 'lib/assets/images/worx_inductions_cover.jpg';
+  static const String defaultHeadLogo = 'lib/assets/images/WorxSafety_Logo_NoShadow.png';
+  static const String defaultBottomLogo = 'lib/assets/images/Worx_PoweredBy_Logo_Mono.png';
+  //-----------------------------------------------------------------------------------------
   static const String mainServerURL = 'https://app.worxsafety.com.au';
 
   //URL Link list

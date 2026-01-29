@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:visitor_practise/core/constants/server_link.dart';
 import 'package:visitor_practise/core/responsive/aap_breakpoints.dart';
 
 import 'package:visitor_practise/pages/auth/widgets/tablet_auth_main.dart';
@@ -34,16 +35,13 @@ class _AuthPageState extends State<AuthPage> {
 
     try {
       final decision = await _authController.decideNextNavigation();
-      
       if(!mounted) return;
-
       if (decision.routeName != null) {
         nav.pushReplacementNamed(decision.routeName!);
       }
 
     } catch (e) {
       if (!mounted) return;
-
       messagerWindow.showSnackBar(
         const SnackBar(
           content: Text(
@@ -77,8 +75,8 @@ class _AuthPageState extends State<AuthPage> {
               constraints: BoxConstraints(maxWidth: maxBodyWidth),
               child: TabletAuthMain(
                   siteTitle: 'Worx Kiosk - Visitor Management',
-                  logoUrlTop: 'lib/assets/images/WorxSafety_Logo_NoShadow.png',
-                  logoUrlBottom: 'lib/assets/images/Worx_PoweredBy_Logo_Mono.png',
+                  logoUrlTop: ServerLink.defaultHeadLogo,
+                  logoUrlBottom: ServerLink.defaultBottomLogo,
                   authController: _authController,
               ),
             ),

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class SearchField extends StatelessWidget {
   const SearchField({
     super.key,
-    this.controller,
+    required this.controller,
     this.onChanged,
     this.hintText = 'Search...',
   });

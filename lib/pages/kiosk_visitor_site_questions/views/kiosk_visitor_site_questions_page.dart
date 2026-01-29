@@ -34,6 +34,7 @@ class _KioskVisitorSiteQuestionPageState extends State<KioskVisitorSiteQuestionP
     }
     
     return BackgroundImageParent(
+       webNotAsset: false,
        customBackgroundUrl: _kioskVisitorSignIncontroller.backgroundImageUrl,
        mainWidget: KioskGuardParent(child:KioskVisitorSiteQuestionsMain(kioskVisitorSiteQuestionsController: _kioskVisitorSignIncontroller,maxBodyWidth:maxBodyWidth)),
     );

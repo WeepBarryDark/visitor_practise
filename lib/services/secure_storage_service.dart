@@ -25,8 +25,16 @@ class SecureStorageService {
   // Authentication keys
   static const String _keyAuthToken = 'auth_token';
   static const String _keySites = 'visitor_sites';
+  static const String _keyClient = 'visitor_client';
+  static const String _keySelectedSite = 'selected_site';
+  static const String _keyAdminPin = 'admin_pin';
 
-  
+  //logo background image
+  static const String _keyLogo = 'custom_logo';
+  static const String _keyBackgroundImage = 'custom_background_image';
+
+  //Unexpected crash or exit - record last accessed location
+  static const String _keyLastAccess = 'last_access';
 
   // ============================================================================
   // AUTHENTICATION
@@ -67,7 +75,7 @@ class SecureStorageService {
   */
   ///------------------------------------------ Auth Token 
   /// Save visitor sites data (JSON string)
-    static Future<void> saveSites(String sitesJson) async {
+  static Future<void> saveSites(String sitesJson) async {
     try {
       await _storage.write(key: _keySites, value: sitesJson);
     } catch (e) {
@@ -78,13 +86,129 @@ class SecureStorageService {
   /// Get visitor sites data (JSON string)
   static Future<String?> getSites() async {
     try {
-      return await _storage.read(key: _keySites);
+      return await _storage.read(key: _keyLastAccess);
     } catch (e) {
       debugPrint('Error reading sites: $e');
       return null;
     }
   }
   ///------------------------------------------ Site Token 
+  /// Save visitor sites data (JSON string)
+  static Future<void> saveClient(String clinetJson) async {
+    try {
+      await _storage.write(key: _keyClient, value: clinetJson);
+    } catch (e) {
+      debugPrint('Error saving sites: $e');
+    }
+  }
+
+  /// Get visitor sites data (JSON string)
+  static Future<String?> getClinet() async {
+    try {
+      return await _storage.read(key: _keyClient);
+    } catch (e) {
+      debugPrint('Error reading sites: $e');
+      return null;
+    }
+  }
+  ///------------------------------------------ Site Token 
+  /// Save last accessed page (string)
+    static Future<void> saveLastAccess(String locationString) async {
+    try {
+      await _storage.write(key: _keyLastAccess, value: locationString);
+    } catch (e) {
+      debugPrint('Error saving sites: $e');
+    }
+  }
+
+  /// Get visitor sites data (JSON string)
+  static Future<String?> getLastAccess() async {
+    try {
+      return await _storage.read(key: _keyLastAccess);
+    } catch (e) {
+      debugPrint('Error reading sites: $e');
+      return null;
+    }
+  }
+  ///------------------------------------------ last accessed page Token 
+    /// Save last accessed page (string)
+    static Future<void> saveLogo(String logoString) async {
+    try {
+      await _storage.write(key: _keyLogo, value: logoString);
+    } catch (e) {
+      debugPrint('Error saving sites: $e');
+    }
+  }
+
+  /// Get visitor sites data (JSON string)
+  static Future<String?> getLogo () async {
+    try {
+      return await _storage.read(key: _keyLogo);
+    } catch (e) {
+      debugPrint('Error reading sites: $e');
+      return null;
+    }
+  }
+  ///------------------------------------------ last accessed page Token
+  ///Save last accessed page (string)
+  static Future<void> saveSelectedSite(String selected_site) async {
+    try {
+      await _storage.write(key: _keySelectedSite, value: selected_site);
+    } catch (e) {
+      debugPrint('Error saving sites: $e');
+    }
+  }
+
+  /// Get visitor sites data (JSON string)
+  static Future<String?> getSelectedSite() async {
+    try {
+      return await _storage.read(key: _keySelectedSite);
+    } catch (e) {
+      debugPrint('Error reading sites: $e');
+      return null;
+    }
+  }
+  ///------------------------------------------ last accessed page Token 
+  /// Save last accessed page (string)
+  static Future<void> saveBackgroundImage(String background_image) async {
+    try {
+      await _storage.write(key: _keyBackgroundImage, value: background_image);
+    } catch (e) {
+      debugPrint('Error saving sites: $e');
+    }
+  }
+
+  /// Get visitor sites data (JSON string)
+  static Future<String?> getBackgroundImage() async {
+    try {
+      return await _storage.read(key: _keyBackgroundImage);
+    } catch (e) {
+      debugPrint('Error reading sites: $e');
+      return null;
+    }
+  }
+  ///------------------------------------------ last accessed page Token 
+  /// Save last accessed page (string)
+  static Future<void> saveAdminPin(String admin_pin) async {
+    try {
+      await _storage.write(key: _keyAdminPin, value: admin_pin);
+    } catch (e) {
+      debugPrint('Error saving sites: $e');
+    }
+  }
+
+  /// Get visitor sites data (JSON string)
+  static Future<String?> getAdminPin() async {
+    try {
+      return await _storage.read(key: _keyAdminPin);
+    } catch (e) {
+      debugPrint('Error reading sites: $e');
+      return null;
+    }
+  }
+  ///------------------------------------------ last accessed page Token 
+  ///
+  ///
 
   static Future<void> clearAll() async {
     try {

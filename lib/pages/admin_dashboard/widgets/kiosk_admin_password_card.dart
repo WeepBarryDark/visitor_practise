@@ -30,7 +30,7 @@ class KioskAdminPasswordCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             TextField(
-                //controller: adminPinCtrl,
+                controller: adminController.adminPinCtrl,
                 obscureText: adminController.obscureAdminPin,
                 decoration: InputDecoration(
                   labelText: 'Admin password',

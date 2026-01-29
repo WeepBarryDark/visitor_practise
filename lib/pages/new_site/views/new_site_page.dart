@@ -5,7 +5,6 @@ import 'package:visitor_practise/pages/new_site/controllers/new_siter_controllde
 import 'package:visitor_practise/pages/new_site/widgets/new_site_main.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/background_image_parent.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/loading_circle_interface.dart';
-import 'package:visitor_practise/shared_widgets/field_input_widgets/search_field.dart';
 
 class NewSitePage extends StatefulWidget {
   const NewSitePage({super.key});
@@ -19,7 +18,30 @@ class _NewSitePageState extends State<NewSitePage> {
   @override
   void initState() {
     super.initState();
-    _newSiteController = NewSiterControllder();
+    _newSiteController = NewSiterControllder(); 
+    //Step 1 check condition, if jump to kiosk, as before unexpected jump out
+    _newSiteController.initialise(
+      onAlreadyRedirect: (nextRoute) async => _handleNavigationKiosk(nextRoute),
+    );
+  }
+
+  Future<void> _handleNavigationKiosk(String nextRoute) async {
+    final nav = Navigator.of(context);
+    final messagerWindow = ScaffoldMessenger.of(context);
+
+    try {
+      nav.pushReplacementNamed(nextRoute);
+    } catch (e) {
+      if (!mounted) return;
+      messagerWindow.showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Offline or Server Unreachable. Check Internet Connection and restart this app. If it's not internet issue, please contact developer.",
+          ),
+          duration: Duration(seconds: 5),
+        ),
+      );
+    }
   }
 
 
@@ -28,16 +50,25 @@ class _NewSitePageState extends State<NewSitePage> {
     final width = MediaQuery.of(context).size.width;
     final maxBodyWidth = AppBreakpoints.getContentWidth(width);
 
-    if (!_newSiteController.isCheckingInitialSite) {
-      return const LoadingCircleInterface();
-    }
-
-    return AppShell(
-      title: 'Sites List',
-      child: BackgroundImageParent(
-       customBackgroundUrl: _newSiteController.backgroundImageUrl,
-       mainWidget: NewSiteMain(newSiteControllder: _newSiteController,maxBodyWidth:maxBodyWidth)
-      ),
-    );
+    return AnimatedBuilder(
+        animation: _newSiteController,
+        builder: (context, _) {
+          if (_newSiteController.isCheckingInitialSite) {
+            return const LoadingCircleInterface();
+          }
+          
+          return AppShell(
+            title: 'Sites List',
+            child: BackgroundImageParent(
+              webNotAsset: _newSiteController.useCustomBackground,
+              customBackgroundUrl: _newSiteController.backgroundImage,
+              mainWidget: NewSiteMain(
+                newSiteControllder: _newSiteController,
+                maxBodyWidth: maxBodyWidth,
+              ),
+            ),
+          );
+        },
+      );
   }
 }

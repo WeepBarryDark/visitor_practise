@@ -19,21 +19,32 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   @override
   void initState() {
     super.initState();
-    _dashboardController = AdminDashboardController(
-      onConfirmed: () async => _navigateKiosk(),
-    );
+    _dashboardController = AdminDashboardController();
 
     _dashboardController.initialise(
-      onAlreadyRedirect: () async => _handleNavigation(),
+      onAlreadyRedirect:(nextRoute) async => _handleNavigationKiosk(nextRoute),
     );
-
   }
 
-  _handleNavigation() async {
+  Future<void> _handleNavigationKiosk(String nextRoute) async {
+    final nav = Navigator.of(context);
+    final messagerWindow = ScaffoldMessenger.of(context);
+
+    try {
+      nav.pushReplacementNamed(nextRoute);
+    } catch (e) {
+      if (!mounted) return;
+      messagerWindow.showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Offline or Server Unreachable. Check Internet Connection and restart this app. If it's not internet issue, please contact developer.",
+          ),
+          duration: Duration(seconds: 5),
+        ),
+      );
+    }
   }
 
-  Future<void> _navigateKiosk() async {
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,12 +55,22 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       return const LoadingCircleInterface();
     }
 
-    return AppShell( 
-      title: 'Admin Dashboard',
-      child:  BackgroundImageParent(
-        customBackgroundUrl: _dashboardController.backgroundImageUrl!,
-        mainWidget: AdminDashboardMain(adminDashboardController: _dashboardController, maxBodyWidth: maxBodyWidth)
-      ),
+    return AnimatedBuilder(
+      animation: _dashboardController,
+      builder: (context, _) {
+        if (_dashboardController.isCheckingInitialDashboard) {
+          return const LoadingCircleInterface();
+        }
+          
+      return AppShell( 
+        title: 'Admin Dashboard',
+        child:  BackgroundImageParent(
+          webNotAsset: _dashboardController.useCustomBackground,
+          customBackgroundUrl: _dashboardController.backgroundImage,
+          mainWidget: AdminDashboardMain(adminDashboardController: _dashboardController, maxBodyWidth: maxBodyWidth)
+        ),
+      );
+      },
     );
   }
 }

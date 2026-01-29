@@ -33,8 +33,9 @@ class _KioskUserSignInPageState extends State<KioskUserSignInPage> {
     }
     
     return BackgroundImageParent(
-       customBackgroundUrl: _kioskUserSignInController.backgroundImageUrl,
-       mainWidget: KioskGuardParent(child:KioskUserSignInMain(kioskUserSignInController: _kioskUserSignInController,maxBodyWidth:maxBodyWidth)),
+        webNotAsset: false,
+        customBackgroundUrl: _kioskUserSignInController.backgroundImageUrl,
+        mainWidget: KioskGuardParent(child:KioskUserSignInMain(kioskUserSignInController: _kioskUserSignInController,maxBodyWidth:maxBodyWidth)),
     );
   }
 }

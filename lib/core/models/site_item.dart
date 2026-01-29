@@ -170,14 +170,4 @@ class SiteItem {
     return 'SiteItem(id: $id, title: $title, active: $active)';
   }
 
-  /// For comparing sites (needed for dropdown selection, etc.)
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is SiteItem &&
-          runtimeType == other.runtimeType &&
-          id == other.id;
-
-  @override
-  int get hashCode => id.hashCode;
 }

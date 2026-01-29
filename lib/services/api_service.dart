@@ -149,6 +149,31 @@ class ApiService {
     }
   }
 
+  /// Fetch visitor client data (logo, background, company name)
+  /// GET with Authorization header
+  /// Returns: {logo: string, background_image: string, name: string, trading_name: string}
+  static Future<Map<String, dynamic>> fetchVisitorClient(String token) async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse(ServerLink.fetchVisitorClient),
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Accept': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return data;
+      } else {
+        throw Exception('Failed to fetch client: ${response.statusCode}');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
   /// Fetch visitor contacts
   /// GET with Authorization header
   /// Returns: {count: int, data: [contacts...]}
@@ -175,31 +200,6 @@ class ApiService {
     }
   }
 
-  /// Fetch visitor client data (logo, background, company name)
-  /// GET with Authorization header
-  /// Returns: {logo: string, background_image: string, name: string, trading_name: string}
-  static Future<Map<String, dynamic>> fetchVisitorClient(String token) async {
-    try {
-      final response = await http
-          .get(
-            Uri.parse(ServerLink.fetchVisitorClient),
-            headers: {
-              'Authorization': 'Bearer $token',
-              'Accept': 'application/json',
-            },
-          )
-          .timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        return data;
-      } else {
-        throw Exception('Failed to fetch client: ${response.statusCode}');
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
 
   /// Fetch site-specific induction questions
   /// POST with site_id in body

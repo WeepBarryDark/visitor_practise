@@ -118,7 +118,7 @@ class SiteCard extends StatelessWidget {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'Supervisor: site.siteSupervisor',
+                        'Supervisor: ${site.siteSupervisor}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppTheme.slate600,
                         ),
