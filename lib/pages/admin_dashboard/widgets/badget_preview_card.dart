@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:visitor_practise/core/constants/app_routes.dart';
 import 'package:visitor_practise/pages/admin_dashboard/controllers/admin_dashboard_controller.dart';
 
 class BadgetPreviewCard extends StatelessWidget {
@@ -13,6 +14,10 @@ class BadgetPreviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
+    if (!adminController.showPreview) { 
+      return const SizedBox.shrink();
+    }
+
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Padding(
@@ -108,7 +113,11 @@ class BadgetPreviewCard extends StatelessWidget {
             const SizedBox(height: 16),
             //Go to Kiosk Model Button------------------------------------
             FilledButton.icon(
-              onPressed: () {print('go to kiosk');}, 
+              onPressed: () async {
+                await adminController.confirmToKiosk();
+                if (!context.mounted) return;
+                await Navigator.pushNamed(context, AppRoutes.visitorKiosk);
+              },
               icon: const Icon(Icons.check_circle),
               label: const Text('Confirm'),
               style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16),),

@@ -10,10 +10,11 @@ import 'package:visitor_practise/core/models/paper_type.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
 import 'package:visitor_practise/services/api_service.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
+import 'package:visitor_practise/shared_widgets/parent_widgets/ui_message.dart';
 
 class AdminDashboardController extends ChangeNotifier{
-
-  //----------------------attribute -----------------
+   void Function(UiMessage message)? onUiMessage;
+  //------------------------------------------------attribute
   bool _isCheckingInitialDashboard = true;
   bool get isCheckingInitialDashboard => _isCheckingInitialDashboard;
 
@@ -50,6 +51,8 @@ class AdminDashboardController extends ChangeNotifier{
   bool _hasTestPrinted = true;
   bool get hasTestPrinted => _hasTestPrinted;
   
+  //Site Information
+  String? clientDisplayName;
 
   bool _useCustomBackground = false;
   bool get useCustomBackground => _useCustomBackground;
@@ -58,10 +61,20 @@ class AdminDashboardController extends ChangeNotifier{
   bool _useCustomLogo = false;
   bool get useCustomLogo => _useCustomLogo;
   String logoImageUrl = ServerLink.defaultHeadLogo;
-  //-------------------------------------------------require information
 
-  //Site Information
-  String? clientDisplayName;
+  //Current Site ----------------------------------------------------select site data
+  Map<String, dynamic>? siteMap;
+
+  //Admin pin----------------------------------------------------------admin pin data
+  final TextEditingController adminPinCtrl = TextEditingController();
+  bool obscureAdminPin = true;
+  bool savingAdminPin = false;
+  String adminPin = '1234';
+  String? adminPinError;
+  String? adminPinStatus;
+
+
+  //-------------------------------------------------print require information
 
   //Print Information Card
   String printerModel = 'test printer';
@@ -84,20 +97,7 @@ class AdminDashboardController extends ChangeNotifier{
   bool reqPersonVisiting = false;//list
   bool reqSignInTime = false;//lock format
   bool reqVisitorPhoto = false;//take a photo
-
-  //Current Site --------------------------------------------------------------data
-  Map<String, dynamic>? siteMap;
-
-  // ====== Admin PIN ======
-  final TextEditingController adminPinCtrl = TextEditingController();
-  bool obscureAdminPin = true;
-  bool savingAdminPin = false;
-  bool loadingAdminPin = true;
-  String adminPin = '1234';
-  String? adminPinError;
-  String? adminPinStatus;
-
-
+  //Visitor Information Card--------------------------------------------------set function
   void setReqPhone(bool? v) {
     if (v == null) return;
     reqPhone = v;
@@ -131,6 +131,13 @@ class AdminDashboardController extends ChangeNotifier{
   void setReqVisitorPhoto(bool? v) {
     if (v == null) return;
     reqVisitorPhoto = v;
+    notifyListeners();
+  }
+  //print required---------------------------------------------------------------
+  bool reqPrint = true;//enable print
+  void setReqPrint(bool? v) { // ----set function
+    if (v == null) return;
+    reqPrint = v;
     notifyListeners();
   }
   //Notification Setting-----------------------------------------------------
@@ -220,46 +227,18 @@ class AdminDashboardController extends ChangeNotifier{
       //"supervisor":{"id":25214,"name":"Barry Weep Admin"},"createdOn":"2021-08-10T03:59:45+00:00"} ...
       await SecureStorageService.saveSites(jsonEncode(sitesJson));
 
+      //loading the admin pin
       final adminSavedPin = await SecureStorageService.getAdminPin().timeout(const Duration(seconds: 10));
       if (adminSavedPin != null && adminSavedPin.isNotEmpty) {
         adminPin = adminSavedPin;
       }
+      adminPinCtrl.text = adminPin;
+      _loadVisitorRequirements();
       _isCheckingInitialDashboard = false;
       notifyListeners();
-
   }
 
-  void startTestPrint() {
-    return;
-  }
-  
-  void changePasswordVisibility () {
-    //display the password
-     obscureAdminPin = !obscureAdminPin;
-     notifyListeners();
-  }
-
-  void allowPrintBadge(bool v) {
-    //display the password
-     obscureAdminPin = !obscureAdminPin;
-     notifyListeners();
-  }
-
-  void onSaveAdminPin() {
-
-  }
-
-  void selectThePaperType(String? v)
-  {
-    _selectedPaperType = v;
-    notifyListeners();
-  }
-
-  Future<bool> checkRedirect() async {
-    return false;
-  }
-
-    Future<bool> checkExistingAuth() async {
+  Future<bool> checkExistingAuth() async {
     /*
     //check if there is already an Auth Token
     //if last saved location is kiosk dashboard && token, selected site, setting are not empty
@@ -291,5 +270,112 @@ class AdminDashboardController extends ChangeNotifier{
       notifyListeners();
       return false;
     }
+  }
+
+  //-----------------------------------------------admin pin section
+  void changePasswordVisibility () {
+    //display the password
+     obscureAdminPin = !obscureAdminPin;
+     notifyListeners();
+  }
+
+  Future<void> onSaveAdminPin() async {
+    final pin = adminPinCtrl.text.trim();
+    if (pin.length < 4) {
+      adminPinError = 'Password must be at least 4 characters.';
+      adminPinStatus = null;
+      notifyListeners();
+      return;
+    }
+
+    savingAdminPin = true;
+    adminPinError = null;
+    adminPinStatus = null;
+    notifyListeners();
+
+    try {
+      await SecureStorageService.saveAdminPin(pin);
+      adminPinStatus = 'Password updated successfully.';
+      onUiMessage?.call(
+        const UiMessage(
+          text: 'New admin pin saved',
+          type: UiMessageType.success,
+        ),
+      );
+    } catch (e) {
+      adminPinStatus = 'Password updated successfully.';
+      onUiMessage?.call(
+        const UiMessage(
+          text: 'Save admin pin failed',
+          type: UiMessageType.success,
+        ),
+      );
+    } finally {
+      notifyListeners();
+      savingAdminPin = false;
+    }
+  }
+  
+
+//------------------------------------------print section
+
+  void allowPrintBadge(bool v) {
+    //display the password
+     obscureAdminPin = !obscureAdminPin;
+     notifyListeners();
+  }
+
+  void startTestPrint() {
+    return;
+  }
+  
+  void selectThePaperType(String? v)
+  {
+    _selectedPaperType = v;
+    notifyListeners();
+  }
+
+//--------------------------------------------------------selection section
+
+  Future<void> _loadVisitorRequirements() async {
+    final requirementsJson = await SecureStorageService.getAdminDashboardSettings();
+    if (requirementsJson != null && requirementsJson.isNotEmpty) {
+      final data = jsonDecode(requirementsJson) as Map<String, dynamic>;
+      reqPhone = data['req_phone'] as bool? ?? false;
+      reqWorkType = data['req_work_type'] as bool? ?? false;
+      reqCompany = data['req_company'] as bool? ?? false;
+      reqAddress = data['req_address'] as bool? ?? false;
+      reqPersonVisiting = data['req_person_visiting'] as bool? ?? false;
+      reqSignInTime = data['req_sign_in_time'] as bool? ?? false;
+      reqVisitorPhoto = data['req_visitor_photo'] as bool? ?? false;
+      reqPrint = data['req_print'] as bool? ?? false;
+      notifyDeliverySms = data['notify_delievery_sms'] as bool? ?? false;
+      notifyDeliveryEmail = data['notify_delievery_email'] as bool? ?? false;
+      notifyPersonVisitingSms = data['notify_person_visiting_sms'] as bool? ?? false;
+      notifyPersonVisitingEmail = data['notify_person_visiting_email'] as bool? ?? false;
+    }
+  }
+
+  Future<void> _saveVisitorRequirements() async {
+    final requirements = {
+      'req_phone': reqPhone,
+      'req_work_type': reqWorkType,
+      'req_company': reqCompany,
+      'req_address': reqAddress,
+      'req_person_visiting': reqPersonVisiting,
+      'req_sign_in_time': reqSignInTime,
+      'req_visitor_photo': reqVisitorPhoto,
+      'req_print': reqPrint,
+      'notify_delievery_sms': notifyDeliverySms,
+      'notify_delievery_email': notifyDeliveryEmail,
+      'notify_person_visiting_sms': notifyPersonVisitingSms,
+      'notify_person_visiting_email': notifyPersonVisitingEmail,
+    };
+    await SecureStorageService.saveAdminDashboardSettings(jsonEncode(requirements));
+  }
+  
+  //------------------------------------------------------------------confirm and go to Kiosk
+  Future<void> confirmToKiosk() async {
+     await _saveVisitorRequirements();
   }
 }

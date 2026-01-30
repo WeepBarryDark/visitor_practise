@@ -28,6 +28,7 @@ class SecureStorageService {
   static const String _keyClient = 'visitor_client';
   static const String _keySelectedSite = 'selected_site';
   static const String _keyAdminPin = 'admin_pin';
+  static const String _keyAdminDashboardSettings = 'admin_dashboard_settings';
 
   //logo background image
   static const String _keyLogo = 'custom_logo';
@@ -151,9 +152,9 @@ class SecureStorageService {
   }
   ///------------------------------------------ last accessed page Token
   ///Save last accessed page (string)
-  static Future<void> saveSelectedSite(String selected_site) async {
+  static Future<void> saveSelectedSite(String selectedSite) async {
     try {
-      await _storage.write(key: _keySelectedSite, value: selected_site);
+      await _storage.write(key: _keySelectedSite, value: selectedSite);
     } catch (e) {
       debugPrint('Error saving sites: $e');
     }
@@ -170,9 +171,9 @@ class SecureStorageService {
   }
   ///------------------------------------------ last accessed page Token 
   /// Save last accessed page (string)
-  static Future<void> saveBackgroundImage(String background_image) async {
+  static Future<void> saveBackgroundImage(String backgroundImage) async {
     try {
-      await _storage.write(key: _keyBackgroundImage, value: background_image);
+      await _storage.write(key: _keyBackgroundImage, value: backgroundImage);
     } catch (e) {
       debugPrint('Error saving sites: $e');
     }
@@ -188,10 +189,10 @@ class SecureStorageService {
     }
   }
   ///------------------------------------------ last accessed page Token 
-  /// Save last accessed page (string)
-  static Future<void> saveAdminPin(String admin_pin) async {
+  /// Save admin pin page (string)
+  static Future<void> saveAdminPin(String adminPin) async {
     try {
-      await _storage.write(key: _keyAdminPin, value: admin_pin);
+      await _storage.write(key: _keyAdminPin, value: adminPin);
     } catch (e) {
       debugPrint('Error saving sites: $e');
     }
@@ -206,8 +207,26 @@ class SecureStorageService {
       return null;
     }
   }
-  ///------------------------------------------ last accessed page Token 
-  ///
+  ///------------------------------------------ admin pin
+  /// Save admin pin page (string)
+  static Future<void> saveAdminDashboardSettings(String adminDashboardSettings) async {
+    try {
+      await _storage.write(key: _keyAdminDashboardSettings, value: adminDashboardSettings);
+    } catch (e) {
+      debugPrint('Error saving sites: $e');
+    }
+  }
+
+  /// Get visitor sites data (JSON string)
+  static Future<String?> getAdminDashboardSettings () async {
+    try {
+      return await _storage.read(key: _keyAdminDashboardSettings);
+    } catch (e) {
+      debugPrint('Error reading sites: $e');
+      return null;
+    }
+  }
+  ///------------------------------------------ admin pin
   ///
 
   static Future<void> clearAll() async {

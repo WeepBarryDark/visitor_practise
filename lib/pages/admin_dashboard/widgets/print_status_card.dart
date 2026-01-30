@@ -236,8 +236,8 @@ class PrintStatusCard extends StatelessWidget {
             // Print badge toggle (always show) to decide auto print badge or not----------------------------------------------
             const SizedBox(height: 16),
             SwitchListTile(
-              value: true,
-              onChanged: adminController.allowPrintBadge,
+              value: adminController.reqPrint,
+              onChanged: adminController.setReqPrint,
               title: const Text('Auto-print visitor badges'),
               subtitle: const Text('Print badge when visitor signs in'),
               contentPadding: EdgeInsets.zero,
