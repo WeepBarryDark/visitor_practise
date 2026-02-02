@@ -47,7 +47,7 @@ class NewSiteMain extends StatelessWidget {
             child: FittedBox(
             fit:BoxFit.contain,
             child: newSiteControllder.useCustomLogo
-              ? LogoBuilder(newSiteControllder.logoImageUrl, 48)
+              ? logoBuilder(newSiteControllder.logoImageUrl, 48)
               : Image.asset(newSiteControllder.logoImageUrl, height: 48),
             )
           ),

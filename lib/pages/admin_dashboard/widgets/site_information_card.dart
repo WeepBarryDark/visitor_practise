@@ -33,7 +33,7 @@ class SiteInformationCard extends StatelessWidget {
               child: FittedBox(
             fit:BoxFit.contain,
                 child: adminController.useCustomLogo
-                  ? LogoBuilder(adminController.logoImageUrl, 48)
+                  ? logoBuilder(adminController.logoImageUrl, 48)
                   : Image.asset(adminController.logoImageUrl, height: 48),
                 )
             ),
@@ -56,12 +56,12 @@ class SiteInformationCard extends StatelessWidget {
             const SizedBox(height: 16),
             SiteInfoRow(
               label: 'Site Name',
-              value: adminController.siteMap?['title'],
+              value: adminController.currentSiteMap?['title'],
             ),
             const SizedBox(height: 16),
             SiteInfoRow(
               label: 'Address',
-              value:  adminController.siteMap?['address'],
+              value:  adminController.currentSiteMap?['address'],
             ),
             //Site name display
           ],

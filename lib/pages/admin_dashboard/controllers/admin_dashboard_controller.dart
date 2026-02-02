@@ -4,16 +4,19 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:uuid/uuid.dart';
 import 'package:visitor_practise/core/constants/app_routes.dart';
 import 'package:visitor_practise/core/constants/server_link.dart';
+import 'package:visitor_practise/core/models/badge_generator.dart';
 import 'package:visitor_practise/core/models/paper_type.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
 import 'package:visitor_practise/services/api_service.dart';
+import 'package:visitor_practise/services/helper/name_beatutifier.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/ui_message.dart';
 
 class AdminDashboardController extends ChangeNotifier{
-   void Function(UiMessage message)? onUiMessage;
+  void Function(UiMessage message)? onUiMessage;
   //------------------------------------------------attribute
   bool _isCheckingInitialDashboard = true;
   bool get isCheckingInitialDashboard => _isCheckingInitialDashboard;
@@ -63,7 +66,8 @@ class AdminDashboardController extends ChangeNotifier{
   String logoImageUrl = ServerLink.defaultHeadLogo;
 
   //Current Site ----------------------------------------------------select site data
-  Map<String, dynamic>? siteMap;
+  Map<String, dynamic>? currentSiteMap;
+  SiteItem? currentSite;
 
   //Admin pin----------------------------------------------------------admin pin data
   final TextEditingController adminPinCtrl = TextEditingController();
@@ -180,7 +184,8 @@ class AdminDashboardController extends ChangeNotifier{
         await onAlreadyRedirect(AppRoutes.newSite);
         return;
       }
-      siteMap = jsonDecode(savedSelectedSite);
+      final currentSiteMap = jsonDecode(savedSelectedSite) as Map<String, dynamic>;
+      currentSite = SiteItem.fromJson(currentSiteMap);
       //debugPrint(savedSelectedSite);
       //{"id":"1","title":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","address":"50 Redman Ave1, THIRROUL, NSW, 25001, Australia","active":true,"site_manager":"","site_supervisor":"{id: 25214, name: Barry Weep Admin}","created_at":"2026-01-29T15:02:05.000638","updated_at":"2026-01-29T15:02:05.000655"}
       // check whether redirect to Kiosk Directly----------
@@ -372,6 +377,33 @@ class AdminDashboardController extends ChangeNotifier{
       'notify_person_visiting_email': notifyPersonVisitingEmail,
     };
     await SecureStorageService.saveAdminDashboardSettings(jsonEncode(requirements));
+  }
+
+  Future<void> generatePreview() async {
+    const uuid = Uuid();
+    final sampleVisitorId = uuid.v4().substring(0, 8).toUpperCase(); // Short ID for demo
+
+    final timezoneSnapshot = reqSignInTime ? DateTime.now() : null;
+    final badgeData = BadgeGenerator(
+      visitorId: sampleVisitorId,
+      fullName: reqFullName ? 'Firstname Lastname' : null,
+      email: reqEmail ? 'visitor@example.com' : null,
+      phone: reqPhone ? '+61 412 345 678' : null,
+      workType: reqWorkType ? 'Contractor' : null,
+      company: reqCompany ? 'ABC Construction' : null,
+      address: reqAddress ? '123 Main St, Sydney' : null,
+      supervisor: reqPersonVisiting ? 'Barry Wang' : null,
+      signInTime: timezoneSnapshot == null ? null : DateTime.now().toString(),
+      siteName: resolveSiteHeading(currentSite!,'Visitor Badge'),
+      clientLogoBytes: clientLogoBytes, // Use client logo bytes if available
+      clientLogoUrl: logoImageUrl, // Pass URL for direct download
+      visitorPhotoBytes: reqVisitorPhoto ? Uint8List(1) : null, // Dummy photo data for preview
+    );
+
+    // Generate the actual image (same one that will be printed)
+    previewImageBytes = await BadgeGenerator.generateBadgeBytes(badgeData);
+    showPreview = true;
+    notifyListeners();
   }
   
   //------------------------------------------------------------------confirm and go to Kiosk

@@ -35,8 +35,8 @@ class KioskBody extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
 
-    final topLogo = LogoBuilder(headLogoUrl, 56, bytes: headLogoBytes);
-    final bottomLogo = LogoBuilder(buttonLogoUrl, 36);
+    final topLogo = logoBuilder(headLogoUrl, 56, bytes: headLogoBytes);
+    final bottomLogo = logoBuilder(buttonLogoUrl, 36);
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Card(

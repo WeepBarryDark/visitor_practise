@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart';
 
@@ -133,16 +135,17 @@ class SecureStorageService {
   }
   ///------------------------------------------ last accessed page Token 
     /// Save last accessed page (string)
-    static Future<void> saveLogo(String logoString) async {
+    static Future<void> saveMainLogo(Uint8List pngBytes) async {
     try {
-      await _storage.write(key: _keyLogo, value: logoString);
+      final b64 = base64Encode(pngBytes);
+      await _storage.write(key: _keyLogo, value: b64);
     } catch (e) {
       debugPrint('Error saving sites: $e');
     }
   }
 
   /// Get visitor sites data (JSON string)
-  static Future<String?> getLogo () async {
+  static Future<String?> getMainLogo () async {
     try {
       return await _storage.read(key: _keyLogo);
     } catch (e) {
