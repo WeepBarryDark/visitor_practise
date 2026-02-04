@@ -598,4 +598,34 @@ class ApiService {
       rethrow;
     }
   }
+
+  // ============================================================================
+  // FETCH SIGNED IN VISITORS
+  // ============================================================================
+  /// Fetch the main logo or any image from URL
+  /// Returns Uint8List if successful, null if failed
+  static Future<Uint8List?> fetchMainLogo(String fetchUrl) async {
+    try {
+      // Get device information
+      final response = await http.get(
+          Uri.parse(fetchUrl),
+          headers: {
+            'User-Agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        debugPrint('Image retrieved successfully from: $fetchUrl');
+        Uint8List logoBytes = response.bodyBytes;
+        return logoBytes;
+      } else {
+        debugPrint('Failed to fetch image: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      debugPrint('Error fetching image: $e');
+      return null;
+    }
+  }
 }

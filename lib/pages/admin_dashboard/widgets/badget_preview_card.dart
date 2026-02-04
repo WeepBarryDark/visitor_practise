@@ -116,7 +116,7 @@ class BadgetPreviewCard extends StatelessWidget {
               onPressed: () async {
                 await adminController.confirmToKiosk();
                 if (!context.mounted) return;
-                await Navigator.pushNamed(context, AppRoutes.visitorKiosk);
+                await Navigator.pushReplacementNamed(context, AppRoutes.visitorKiosk);
               },
               icon: const Icon(Icons.check_circle),
               label: const Text('Confirm'),

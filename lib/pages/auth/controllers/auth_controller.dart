@@ -223,11 +223,30 @@ class AuthController extends ChangeNotifier {
       final sitesJson = await ApiService.fetchVisitorSites(savedToken).timeout(const Duration(seconds: 30));
       final rawCount = sitesJson['count'];
       final rawData = sitesJson['data'];
-      
+
       final int sitesCount = rawCount is int ? rawCount : 0;
       final List<dynamic> sites = rawData is List ? rawData : [];
 
       await SecureStorageService.saveSites(jsonEncode(sites));
+
+      // Fetch client data (logo, background, company info)
+      try {
+        final clientJson = await ApiService.fetchVisitorClient(savedToken).timeout(const Duration(seconds: 5));
+        await SecureStorageService.saveClient(jsonEncode(clientJson));
+
+        // Download and save client logo as Uint8List
+        final logoUrl = clientJson['logo'] as String?;
+        if (logoUrl != null && logoUrl.isNotEmpty) {
+          final logoBytes = await ApiService.fetchMainLogo(logoUrl).timeout(const Duration(seconds: 5));
+          if (logoBytes != null && logoBytes.isNotEmpty) {
+            await SecureStorageService.saveClientLogoBytes(logoBytes);
+            debugPrint('Client logo downloaded and saved successfully');
+          }
+        }
+      } catch (e) {
+        debugPrint('Failed to fetch/save client logo: $e');
+        // Continue even if client logo fetch fails
+      }
 
       if (sites.length > 1 || sitesCount == 0 || sites.isEmpty) {
         return const AuthNavDecision.go(AppRoutes.newSite);

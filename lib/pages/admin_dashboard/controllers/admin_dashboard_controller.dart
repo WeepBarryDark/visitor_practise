@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 import 'package:visitor_practise/core/constants/app_routes.dart';
 import 'package:visitor_practise/core/constants/server_link.dart';
@@ -64,10 +63,11 @@ class AdminDashboardController extends ChangeNotifier{
   bool _useCustomLogo = false;
   bool get useCustomLogo => _useCustomLogo;
   String logoImageUrl = ServerLink.defaultHeadLogo;
+  Uint8List? clientLogoBytes; // Client logo bytes for badge generation
 
   //Current Site ----------------------------------------------------select site data
-  Map<String, dynamic>? currentSiteMap;
-  SiteItem? currentSite;
+  late final Map<String, dynamic> currentSiteMap;
+  late final SiteItem currentSite;
 
   //Admin pin----------------------------------------------------------admin pin data
   final TextEditingController adminPinCtrl = TextEditingController();
@@ -184,8 +184,10 @@ class AdminDashboardController extends ChangeNotifier{
         await onAlreadyRedirect(AppRoutes.newSite);
         return;
       }
-      final currentSiteMap = jsonDecode(savedSelectedSite) as Map<String, dynamic>;
+      currentSiteMap = jsonDecode(savedSelectedSite) as Map<String, dynamic>;
+      //debugPrint(jsonEncode(currentSiteMap));
       currentSite = SiteItem.fromJson(currentSiteMap);
+      //debugPrint(jsonEncode(currentSite));
       //debugPrint(savedSelectedSite);
       //{"id":"1","title":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","address":"50 Redman Ave1, THIRROUL, NSW, 25001, Australia","active":true,"site_manager":"","site_supervisor":"{id: 25214, name: Barry Weep Admin}","created_at":"2026-01-29T15:02:05.000638","updated_at":"2026-01-29T15:02:05.000655"}
       // check whether redirect to Kiosk Directly----------
@@ -221,6 +223,9 @@ class AdminDashboardController extends ChangeNotifier{
         _useCustomBackground = true;
         backgroundImage = clientBackgroundImage;
       }
+
+      // Load client logo bytes from SecureStorage or use default
+      await _loadClientLogoBytes();
 
       //everytime refetch sites
       final sitesJson = await ApiService.fetchVisitorSites(savedToken).timeout(const Duration(seconds: 10));
@@ -274,6 +279,33 @@ class AdminDashboardController extends ChangeNotifier{
       _statusMessage = 'Error while checking existing login. Please start a new session.';
       notifyListeners();
       return false;
+    }
+  }
+
+    /// Load client logo bytes from SecureStorage
+  /// If not available, load default WorxSafety logo from assets
+  Future<void> _loadClientLogoBytes() async {
+    try {
+      // Try to get client logo bytes from SecureStorage
+      final storedLogoBytes = await SecureStorageService.getClientLogoBytes();
+
+      if (storedLogoBytes != null && storedLogoBytes.isNotEmpty) {
+        clientLogoBytes = storedLogoBytes; //use custom logo
+      } else {
+        // Load default logo from assets
+        final ByteData data = await rootBundle.load('lib/assets/images/WorxSafety_Logo_NoShadow.png');
+        clientLogoBytes = data.buffer.asUint8List();
+      }
+    } catch (e) {
+      // If everything fails, try to load default logo
+      try {
+        final ByteData data = await rootBundle.load('lib/assets/images/WorxSafety_Logo_NoShadow.png');
+        clientLogoBytes = data.buffer.asUint8List();
+        debugPrint('Fallback to default logo (${clientLogoBytes!.length} bytes)');
+      } catch (e2) {
+        debugPrint('Failed to load default logo: $e2');
+        clientLogoBytes = null; // Will be handled by BadgeGenerator fallback
+      }
     }
   }
 
@@ -410,4 +442,5 @@ class AdminDashboardController extends ChangeNotifier{
   Future<void> confirmToKiosk() async {
      await _saveVisitorRequirements();
   }
+
 }

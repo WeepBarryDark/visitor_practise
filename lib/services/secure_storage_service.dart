@@ -35,6 +35,7 @@ class SecureStorageService {
   //logo background image
   static const String _keyLogo = 'custom_logo';
   static const String _keyBackgroundImage = 'custom_background_image';
+  static const String _keyClientLogo = 'client_logo_bytes';
 
   //Unexpected crash or exit - record last accessed location
   static const String _keyLastAccess = 'last_access';
@@ -230,7 +231,32 @@ class SecureStorageService {
     }
   }
   ///------------------------------------------ admin pin
-  ///
+
+  /// Save client logo bytes (from client API response)
+  static Future<void> saveClientLogoBytes(Uint8List logoBytes) async {
+    try {
+      final b64 = base64Encode(logoBytes);
+      await _storage.write(key: _keyClientLogo, value: b64);
+      debugPrint('Client logo bytes saved successfully');
+    } catch (e) {
+      debugPrint('Error saving client logo bytes: $e');
+    }
+  }
+
+  /// Get client logo bytes (returns Uint8List)
+  static Future<Uint8List?> getClientLogoBytes() async {
+    try {
+      final b64String = await _storage.read(key: _keyClientLogo);
+      if (b64String == null || b64String.isEmpty) {
+        return null;
+      }
+      return base64Decode(b64String);
+    } catch (e) {
+      debugPrint('Error reading client logo bytes: $e');
+      return null;
+    }
+  }
+  ///------------------------------------------ client logo bytes
 
   static Future<void> clearAll() async {
     try {

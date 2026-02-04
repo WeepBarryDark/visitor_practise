@@ -111,8 +111,7 @@ class BadgeGenerator {
     int height = 400,
   }) async {
     try {
-      final widgetResult = await _convertSvgViaWidgetRender(svgBytes, width, height)
-          .timeout(const Duration(seconds: 8));
+      final widgetResult = await _convertSvgViaWidgetRender(svgBytes, width, height).timeout(const Duration(seconds: 8));
       if (widgetResult != null) {
         return widgetResult;
       }
@@ -278,6 +277,14 @@ class BadgeGenerator {
     final picture = recorder.endRecording();
     final image = await picture.toImage(badgeWidth.toInt(), canvasHeight.toInt());
     return image;
+  }
+
+  /// Generate badge as Uint8List (PNG bytes)
+  /// Convenience method that calls generateBadgeImage and converts to bytes
+  static Future<Uint8List> generateBadgeBytes(BadgeGenerator data) async {
+    final image = await generateBadgeImage(data);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
   }
 
     /// Generate QR code image

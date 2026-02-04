@@ -99,7 +99,7 @@ class VisitorRequirementFieldCard extends StatelessWidget {
             //Confirm button------------------------------------------
             const SizedBox(height: 12),
             FilledButton(
-              onPressed: () {print('Generate preview button');},
+              onPressed: () {adminController.generatePreview();},
               child: const Text('Preview Visitor Badge'),
             ),
           ],

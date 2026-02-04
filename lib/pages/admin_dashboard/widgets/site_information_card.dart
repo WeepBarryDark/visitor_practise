@@ -61,7 +61,7 @@ class SiteInformationCard extends StatelessWidget {
             const SizedBox(height: 16),
             SiteInfoRow(
               label: 'Address',
-              value:  adminController.currentSiteMap?['address'],
+              value: adminController.currentSiteMap?['address'],
             ),
             //Site name display
           ],
