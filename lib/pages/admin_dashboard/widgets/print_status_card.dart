@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/theme/app_theme.dart';
 import 'package:visitor_practise/pages/admin_dashboard/controllers/admin_dashboard_controller.dart';
@@ -27,7 +28,8 @@ class PrintStatusCard extends StatelessWidget {
               children: [
                 //header ----------------------------------------------------------
                 Expanded(child: Text('Printer Status', style: tt.titleMedium)),
-                if (adminController.isConnectingPrinter)
+                // Print badge toggle (always show) to decide auto print badge or not----------------------------------------------
+                if (adminController.isInitializingdPrinter)
                   // Still connecting - show loading indicator 
                   Row(
                     mainAxisSize: MainAxisSize.min,
@@ -73,6 +75,14 @@ class PrintStatusCard extends StatelessWidget {
                     ),
                   ),
               ],
+            ),
+            const SizedBox(height: 16),
+              SwitchListTile(
+                value: adminController.reqPrint,
+                onChanged: kIsWeb ? null : adminController.setReqPrint,
+                title: const Text('Auto-print visitor badges'),
+                subtitle: const Text('Print badge when visitor signs in'),
+                contentPadding: EdgeInsets.zero,
             ),
             const SizedBox(height: 12),
             LabelValue('Initialized', adminController.isInitializedPrinter ? 'Yes' : 'No'),
@@ -233,15 +243,6 @@ class PrintStatusCard extends StatelessWidget {
                 ),
               ),
             ],
-            // Print badge toggle (always show) to decide auto print badge or not----------------------------------------------
-            const SizedBox(height: 16),
-            SwitchListTile(
-              value: adminController.reqPrint,
-              onChanged: adminController.setReqPrint,
-              title: const Text('Auto-print visitor badges'),
-              subtitle: const Text('Print badge when visitor signs in'),
-              contentPadding: EdgeInsets.zero,
-            ),
             const SizedBox(height: 16),
             PrintTestCard(adminController),
           ]

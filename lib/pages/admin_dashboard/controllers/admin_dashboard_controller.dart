@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
@@ -28,8 +29,8 @@ class AdminDashboardController extends ChangeNotifier{
   bool _wasOnKiosk = false;
   bool get wasOnKiosk => _wasOnKiosk;
 
-  bool _isConnectingPrinter = true;
-  bool get isConnectingPrinter => _isConnectingPrinter;
+  bool _isInitializingPrinter = false;
+  bool get isInitializingdPrinter => _isInitializingPrinter;
 
   bool _isInitializedPrinter = true;
   bool get isInitializedPrinter => _isInitializedPrinter;
@@ -79,6 +80,9 @@ class AdminDashboardController extends ChangeNotifier{
 
 
   //-------------------------------------------------print require information
+
+  // BuildContext for permission dialogs (set from dashboard page)
+  late final Future<dynamic> Function() _getContext;
 
   //Print Information Card
   String printerModel = 'test printer';
@@ -143,6 +147,8 @@ class AdminDashboardController extends ChangeNotifier{
     if (v == null) return;
     reqPrint = v;
     notifyListeners();
+    if (v) initializePrinter();
+
   }
   //Notification Setting-----------------------------------------------------
   bool notifyDeliverySms = false;
@@ -171,6 +177,7 @@ class AdminDashboardController extends ChangeNotifier{
     notifyListeners();
   }
 
+  // initialization-----------------------------------------------
   Future<void> initialise ({
     required Future<void> Function(String nextRoute) onAlreadyRedirect,
   }) async {
@@ -355,6 +362,53 @@ class AdminDashboardController extends ChangeNotifier{
   
 
 //------------------------------------------print section
+Future<void> initializePrinter() async {
+  if (_isInitializingPrinter) {
+    debugPrint('Printer already initialized, skipping...');
+    return;
+  }
+
+  _isInitializingPrinter = true;
+  notifyListeners();
+
+  try {
+    if (kIsWeb) {
+      // if its web, the toggle can only be false
+      reqPrint = false;
+      notifyListeners();
+    } else {
+      // check permission
+      final context = await _getContext();
+      if (context == null) {
+        printerName = 'Initialization failed';
+        printerIp = 'Context not available';
+        hasAttemptedConnection = true;
+        notifyListeners();
+        return;
+      }
+
+      final hasPermission = await DevicePermission.requestPrinterPermissions(context);
+
+
+    }
+
+
+    // 模拟成功/失败
+    _isInitializedPrinter = true; // 或 false 如果失败
+
+    if (!_isInitializedPrinter) {
+      _showManualInput = true; // 失败后显示手动输入
+    }
+
+    } catch (e) {
+      debugPrint('Printer initialization failed: $e');
+      _isInitializedPrinter = false;
+      _showManualInput = true;
+    } finally {
+      _isInitializedPrinter = false;
+      notifyListeners();
+    }
+  }
 
   void allowPrintBadge(bool v) {
     //display the password
