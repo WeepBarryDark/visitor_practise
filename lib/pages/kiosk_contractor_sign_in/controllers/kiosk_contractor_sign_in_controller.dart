@@ -1,4 +1,4 @@
-class KioskUserSignInController {
+class KioskContractorSignInController {
   // status
   bool _isCheckingInitial = true;
   bool get isCheckingInitial => _isCheckingInitial;

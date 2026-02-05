@@ -20,7 +20,11 @@ class _KioskDashboardPageState extends State<KioskDashboardPage> {
   void initState() {
     super.initState();
     _kioskDashboardController = KioskDashboardController();
+
+    _kioskDashboardController.initializing();
+    
   }
+
 
   @override
   Widget build(BuildContext context) {

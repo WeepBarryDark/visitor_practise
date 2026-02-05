@@ -111,12 +111,64 @@ class BadgetPreviewCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
+            //Functionality setting-----------------------------------
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: cs.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: cs.outlineVariant),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Kiosk Dashboard Options', style: tt.titleMedium),
+                  const SizedBox(height: 8),
+                  CheckboxListTile(
+                    value: adminController.enableVisitorSignIn,
+                    onChanged: null, //always selected
+                    title: const Text('Visitor Sign In'),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  CheckboxListTile(
+                      value: adminController.enableVisitorSignOut,
+                      onChanged: null, //always selected
+                      title: const Text('Visitor Sign Out'),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                  ),
+                  CheckboxListTile(
+                      value: adminController.enableVisitorDelivery,
+                      onChanged: (v) => adminController.setEnableVisitorDelivery(v),
+                      title: const Text('Delivery'),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                  ),
+                  CheckboxListTile(
+                      value: adminController.enableContractorSignIn,
+                      onChanged: (v) => adminController.setEnableContractorSignIn(v),
+                      title: const Text('Contractor Sign In'),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                  ),
+                  CheckboxListTile(
+                      value: adminController.enableVisitorRetrieveBadge,
+                      onChanged: (v) => adminController.setEnableVisitorRetrieveBadge(v),
+                      title: const Text('Retrieve Badge'),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero
+                  ),
+                ]
+              )
+            ),
+            const SizedBox(height: 16),
             //Go to Kiosk Model Button------------------------------------
             FilledButton.icon(
               onPressed: () async {
                 await adminController.confirmToKiosk();
                 if (!context.mounted) return;
-                await Navigator.pushReplacementNamed(context, AppRoutes.visitorKiosk);
+                await Navigator.pushReplacementNamed(context, AppRoutes.kioskDashboard);
               },
               icon: const Icon(Icons.check_circle),
               label: const Text('Confirm'),

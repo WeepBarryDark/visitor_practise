@@ -44,7 +44,7 @@ class NewSiterControllder extends ChangeNotifier {
       // check whether redirect to Kiosk Directly----------
       final alreadyAuthed = await checkExistingAuth();
       if (alreadyAuthed) {
-        await onAlreadyRedirect(AppRoutes.visitorKiosk);
+        await onAlreadyRedirect(AppRoutes.kioskDashboard);
         return;
       }
       //-------------------------------------------------end

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:visitor_practise/pages/kiosk_user_sign_in/controllers/kiosk_user_sign_in_controller.dart';
+import 'package:visitor_practise/pages/kiosk_contractor_sign_in/controllers/kiosk_contractor_sign_in_controller.dart';
 import 'package:visitor_practise/shared_widgets/card_template_widgets/kiosk_body.dart';
 
-class KioskUserSignInMain extends StatelessWidget {
-  const KioskUserSignInMain({
+class KioskContractorSignInMain extends StatelessWidget {
+  const KioskContractorSignInMain({
     super.key,
-    required this.kioskUserSignInController,
+    required this.kioskContractorSignInController,
     required this.maxBodyWidth,
   });
 
-  final KioskUserSignInController kioskUserSignInController;
+  final KioskContractorSignInController kioskContractorSignInController;
   final double maxBodyWidth;
 
 
@@ -23,7 +23,7 @@ class KioskUserSignInMain extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxBodyWidth),
           child: KioskBody(
-              headLogoUrl: kioskUserSignInController.logoImageUrl, 
+              headLogoUrl: kioskContractorSignInController.logoImageUrl, 
               siteTitle: "test", 
               printReady: true, 
               supervisorName: "Barry Wang",
@@ -112,7 +112,7 @@ class KioskUserSignInMain extends StatelessWidget {
                   ),
                 ),
               ),
-              buttonLogoUrl: kioskUserSignInController.powerByLogoUrl,
+              buttonLogoUrl: kioskContractorSignInController.powerByLogoUrl,
             ),
         ),
       ),

@@ -11,6 +11,7 @@ import 'package:visitor_practise/core/models/badge_generator.dart';
 import 'package:visitor_practise/core/models/paper_type.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
 import 'package:visitor_practise/services/api_service.dart';
+import 'package:visitor_practise/services/helper/device_permission.dart';
 import 'package:visitor_practise/services/helper/name_beatutifier.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/ui_message.dart';
@@ -77,7 +78,6 @@ class AdminDashboardController extends ChangeNotifier{
   String adminPin = '1234';
   String? adminPinError;
   String? adminPinStatus;
-
 
   //-------------------------------------------------print require information
 
@@ -176,7 +176,28 @@ class AdminDashboardController extends ChangeNotifier{
     notifyPersonVisitingEmail = v;
     notifyListeners();
   }
-
+  //Notification Setting-----------------------------------------------------
+  bool enableVisitorSignIn = true;
+  bool enableVisitorSignOut = true;
+  bool enableVisitorDelivery = false;
+  bool enableContractorSignIn = false;
+  bool enableVisitorRetrieveBadge = false;
+  
+  void setEnableVisitorDelivery(bool? v) {
+    if (v == null) return;
+    enableVisitorDelivery = v;
+    notifyListeners();
+  }
+  void setEnableContractorSignIn(bool? v) {
+    if (v == null) return;
+    enableContractorSignIn = v;
+    notifyListeners();
+  }
+  void setEnableVisitorRetrieveBadge(bool? v) {
+    if (v == null) return;
+    enableVisitorRetrieveBadge = v;
+    notifyListeners();
+  }
   // initialization-----------------------------------------------
   Future<void> initialise ({
     required Future<void> Function(String nextRoute) onAlreadyRedirect,
@@ -200,7 +221,7 @@ class AdminDashboardController extends ChangeNotifier{
       // check whether redirect to Kiosk Directly----------
       final alreadyAuthed = await checkExistingAuth();
       if (alreadyAuthed) {
-        await onAlreadyRedirect(AppRoutes.visitorKiosk);
+        await onAlreadyRedirect(AppRoutes.kioskDashboard);
         return;
       }
       //-------------------------------------------------end
@@ -250,7 +271,7 @@ class AdminDashboardController extends ChangeNotifier{
         adminPin = adminSavedPin;
       }
       adminPinCtrl.text = adminPin;
-      _loadVisitorRequirements();
+      await _loadVisitorRequirements();
       _isCheckingInitialDashboard = false;
       notifyListeners();
   }
@@ -379,13 +400,6 @@ Future<void> initializePrinter() async {
     } else {
       // check permission
       final context = await _getContext();
-      if (context == null) {
-        printerName = 'Initialization failed';
-        printerIp = 'Context not available';
-        hasAttemptedConnection = true;
-        notifyListeners();
-        return;
-      }
 
       final hasPermission = await DevicePermission.requestPrinterPermissions(context);
 
@@ -430,8 +444,11 @@ Future<void> initializePrinter() async {
 
   Future<void> _loadVisitorRequirements() async {
     final requirementsJson = await SecureStorageService.getAdminDashboardSettings();
+    debugPrint(requirementsJson);
     if (requirementsJson != null && requirementsJson.isNotEmpty) {
       final data = jsonDecode(requirementsJson) as Map<String, dynamic>;
+      reqFullName = true;// Always required, cannot be disabled - Text
+      reqEmail = true; 
       reqPhone = data['req_phone'] as bool? ?? false;
       reqWorkType = data['req_work_type'] as bool? ?? false;
       reqCompany = data['req_company'] as bool? ?? false;
@@ -444,11 +461,18 @@ Future<void> initializePrinter() async {
       notifyDeliveryEmail = data['notify_delievery_email'] as bool? ?? false;
       notifyPersonVisitingSms = data['notify_person_visiting_sms'] as bool? ?? false;
       notifyPersonVisitingEmail = data['notify_person_visiting_email'] as bool? ?? false;
+      enableVisitorSignIn = true;
+      enableVisitorSignOut = true;
+      enableVisitorDelivery = data['enable_visitor_delivery'] as bool? ?? false;
+      enableContractorSignIn = data['enable_contractor_sign_in'] as bool? ?? false;
+      enableVisitorRetrieveBadge = data['enable_visitor_retrieve_badge'] as bool? ?? false;
     }
   }
 
   Future<void> _saveVisitorRequirements() async {
     final requirements = {
+      'req_full_name': reqFullName,
+      'req_email': reqEmail,
       'req_phone': reqPhone,
       'req_work_type': reqWorkType,
       'req_company': reqCompany,
@@ -461,6 +485,11 @@ Future<void> initializePrinter() async {
       'notify_delievery_email': notifyDeliveryEmail,
       'notify_person_visiting_sms': notifyPersonVisitingSms,
       'notify_person_visiting_email': notifyPersonVisitingEmail,
+      'enable_visitor_sign_in' : enableVisitorSignIn,
+      'enable_visitor_sign_out' : enableVisitorSignOut,
+      'enable_visitor_delivery' : enableVisitorDelivery,
+      'enable_contractor_sign_in' : enableContractorSignIn,
+      'enable_visitor_retrieve_badge' : enableVisitorRetrieveBadge,
     };
     await SecureStorageService.saveAdminDashboardSettings(jsonEncode(requirements));
   }
@@ -480,7 +509,7 @@ Future<void> initializePrinter() async {
       address: reqAddress ? '123 Main St, Sydney' : null,
       supervisor: reqPersonVisiting ? 'Barry Wang' : null,
       signInTime: timezoneSnapshot == null ? null : DateTime.now().toString(),
-      siteName: resolveSiteHeading(currentSite!,'Visitor Badge'),
+      siteName: resolveSiteHeading(currentSite,'Visitor Badge'),
       clientLogoBytes: clientLogoBytes, // Use client logo bytes if available
       clientLogoUrl: logoImageUrl, // Pass URL for direct download
       visitorPhotoBytes: reqVisitorPhoto ? Uint8List(1) : null, // Dummy photo data for preview
