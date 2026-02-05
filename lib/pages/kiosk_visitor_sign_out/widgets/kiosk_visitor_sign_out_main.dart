@@ -24,7 +24,7 @@ class KioskVisitorSignOutMain extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxBodyWidth),
           child: KioskBody(
-              headLogoUrl: kioskVisitorSignOutController.logoImageUrl, 
+              topLogoBytes: kioskVisitorSignOutController.topLogo!, 
               siteTitle: "test", 
               printReady: true, 
               supervisorName: "Barry Wang",
@@ -159,7 +159,7 @@ class KioskVisitorSignOutMain extends StatelessWidget {
                   ],
                 ),
               ),
-              buttonLogoUrl: kioskVisitorSignOutController.powerByLogoUrl,
+              bottomLogoBytes: kioskVisitorSignOutController.bottomLogo!,
             ),
         ),
       ),

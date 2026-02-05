@@ -75,7 +75,7 @@ class _AuthPageState extends State<AuthPage> {
               constraints: BoxConstraints(maxWidth: maxBodyWidth),
               child: TabletAuthMain(
                   siteTitle: 'Worx Kiosk - Visitor Management',
-                  logoUrlTop: ServerLink.defaultHeadLogo,
+                  logoUrlTop: ServerLink.defaultTopLogo,
                   logoUrlBottom: ServerLink.defaultBottomLogo,
                   authController: _authController,
               ),

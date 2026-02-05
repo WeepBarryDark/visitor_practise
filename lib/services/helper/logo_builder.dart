@@ -2,6 +2,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+Widget? logoBuilder(double height, Uint8List bytes) {
+  return Image.memory(bytes, height: height, fit: BoxFit.contain);
+}
+/* old 
 /// Helper function to build logo widgets (SVG or PNG, network or asset)
 Widget? logoBuilder(String? url, double height, {Uint8List? bytes}) {
   if (bytes != null && bytes.isNotEmpty) {
@@ -22,3 +26,4 @@ Widget? logoBuilder(String? url, double height, {Uint8List? bytes}) {
     return isNetwork ? Image.network(url, height: height, fit: BoxFit.contain) : Image.asset(url, height: height, fit: BoxFit.contain);
   }
 }
+*/

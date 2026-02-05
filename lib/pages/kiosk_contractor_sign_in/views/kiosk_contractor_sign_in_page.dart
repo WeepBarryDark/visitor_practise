@@ -20,6 +20,7 @@ class _KioskContractorSignInPageState extends State<KioskContractorSignInPage> {
   void initState() {
     super.initState();
     _kioskContractorSignInController = KioskContractorSignInController();
+    _kioskContractorSignInController.initialise();
   }
 
  
@@ -33,8 +34,7 @@ class _KioskContractorSignInPageState extends State<KioskContractorSignInPage> {
     }
     
     return BackgroundImageParent(
-        webNotAsset: false,
-        customBackgroundUrl: _kioskContractorSignInController.backgroundImageUrl,
+        backgroundBytes: _kioskContractorSignInController.background!,
         mainWidget: KioskGuardParent(child:KioskContractorSignInMain(kioskContractorSignInController: _kioskContractorSignInController,maxBodyWidth:maxBodyWidth)),
     );
   }

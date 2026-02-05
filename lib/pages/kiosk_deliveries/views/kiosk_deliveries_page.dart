@@ -21,6 +21,8 @@ class _KioskDeliveriesPageState extends State<KioskDeliveriesPage> {
     super.initState();
     _kioskDeliveriesController = KioskDeliveriesController();
     _kioskDeliveriesController.orgCtrl = TextEditingController();
+
+    _kioskDeliveriesController.initialise();
   }
 
 
@@ -34,8 +36,7 @@ class _KioskDeliveriesPageState extends State<KioskDeliveriesPage> {
     }
     
     return BackgroundImageParent(
-       webNotAsset: false,
-       customBackgroundUrl: _kioskDeliveriesController.backgroundImageUrl,
+       backgroundBytes: _kioskDeliveriesController.background!,
        mainWidget: KioskGuardParent(child:KioskDeliveriesMain(kioskDeliveriesController: _kioskDeliveriesController,maxBodyWidth:maxBodyWidth)),
     );
   }

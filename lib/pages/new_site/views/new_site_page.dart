@@ -60,8 +60,7 @@ class _NewSitePageState extends State<NewSitePage> {
           return AppShell(
             title: 'Sites List',
             child: BackgroundImageParent(
-              webNotAsset: _newSiteController.useCustomBackground,
-              customBackgroundUrl: _newSiteController.backgroundImage,
+              backgroundBytes: _newSiteController.background!,
               mainWidget: NewSiteMain(
                 newSiteControllder: _newSiteController,
                 maxBodyWidth: maxBodyWidth,

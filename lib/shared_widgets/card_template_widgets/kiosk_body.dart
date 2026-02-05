@@ -7,9 +7,8 @@ import 'package:visitor_practise/services/helper/logo_builder.dart';
 class KioskBody extends StatelessWidget {
   const KioskBody({
     super.key,
-    required this.headLogoUrl,
-    this.headLogoBytes,
-    required this.buttonLogoUrl,
+    required this.topLogoBytes,
+    required this.bottomLogoBytes,
     required this.siteTitle,
     required this.printReady,
     required this.menuContent,
@@ -19,9 +18,8 @@ class KioskBody extends StatelessWidget {
 
   });
 
-  final String headLogoUrl;
-  final Uint8List? headLogoBytes;
-  final String buttonLogoUrl;
+  final Uint8List topLogoBytes;
+  final Uint8List bottomLogoBytes;
   final String siteTitle;
   final bool printReady;
   final Widget menuContent;
@@ -35,8 +33,8 @@ class KioskBody extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
 
-    final topLogo = logoBuilder(headLogoUrl, 56, bytes: headLogoBytes);
-    final bottomLogo = logoBuilder(buttonLogoUrl, 36);
+    final topLogo = logoBuilder( 56, topLogoBytes);
+    final bottomLogo = logoBuilder(36,bottomLogoBytes);
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Card(

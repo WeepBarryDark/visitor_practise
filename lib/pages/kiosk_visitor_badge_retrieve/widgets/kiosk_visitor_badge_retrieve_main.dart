@@ -22,7 +22,7 @@ class KioskVisitorBadgeRetrieveMain extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxBodyWidth),
           child: KioskBody(
-              headLogoUrl: kioskVisitorBadgeRetrieveController.logoImageUrl, 
+              topLogoBytes: kioskVisitorBadgeRetrieveController.topLogo!, 
               siteTitle: "test", 
               printReady: true, 
               supervisorName: "Barry Wang",
@@ -100,7 +100,7 @@ class KioskVisitorBadgeRetrieveMain extends StatelessWidget {
                           ),
                           const SizedBox(height: 20),
                           // Badge preview
-                          if (kioskVisitorBadgeRetrieveController.badgeImageBytes != null) ...[
+                          if (kioskVisitorBadgeRetrieveController.background != null) ...[
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
@@ -125,7 +125,7 @@ class KioskVisitorBadgeRetrieveMain extends StatelessWidget {
                                     ),
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
-                                      child: Image.memory(kioskVisitorBadgeRetrieveController.badgeImageBytes!, fit: BoxFit.contain,),
+                                      child: Image.memory(kioskVisitorBadgeRetrieveController.background!, fit: BoxFit.contain,),
                                     ),
                                   ),
                                 ],
@@ -169,7 +169,7 @@ class KioskVisitorBadgeRetrieveMain extends StatelessWidget {
                   ],
                 ),
               ),
-              buttonLogoUrl: kioskVisitorBadgeRetrieveController.powerByLogoUrl,
+              bottomLogoBytes: kioskVisitorBadgeRetrieveController.bottomLogo!,
             ),
         ),
       ),

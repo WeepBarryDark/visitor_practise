@@ -8,16 +8,19 @@ import 'package:uuid/uuid.dart';
 import 'package:visitor_practise/core/constants/app_routes.dart';
 import 'package:visitor_practise/core/constants/server_link.dart';
 import 'package:visitor_practise/core/models/badge_generator.dart';
+import 'package:visitor_practise/core/models/logos_background.dart';
 import 'package:visitor_practise/core/models/paper_type.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
 import 'package:visitor_practise/services/api_service.dart';
 import 'package:visitor_practise/services/helper/device_permission.dart';
 import 'package:visitor_practise/services/helper/name_beatutifier.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
-import 'package:visitor_practise/shared_widgets/parent_widgets/ui_message.dart';
 
-class AdminDashboardController extends ChangeNotifier{
-  void Function(UiMessage message)? onUiMessage;
+class AdminDashboardController extends ChangeNotifier {
+  //Background and Logo------------------------------------
+  Uint8List? topLogo;
+  Uint8List? bottomLogo;
+  Uint8List? background;
   //------------------------------------------------attribute
   bool _isCheckingInitialDashboard = true;
   bool get isCheckingInitialDashboard => _isCheckingInitialDashboard;
@@ -57,16 +60,7 @@ class AdminDashboardController extends ChangeNotifier{
   
   //Site Information
   String? clientDisplayName;
-
-  bool _useCustomBackground = false;
-  bool get useCustomBackground => _useCustomBackground;
-  String backgroundImage = ServerLink.defaultBackgroup;
-
-  bool _useCustomLogo = false;
-  bool get useCustomLogo => _useCustomLogo;
-  String logoImageUrl = ServerLink.defaultHeadLogo;
-  Uint8List? clientLogoBytes; // Client logo bytes for badge generation
-
+  
   //Current Site ----------------------------------------------------select site data
   late final Map<String, dynamic> currentSiteMap;
   late final SiteItem currentSite;
@@ -76,8 +70,7 @@ class AdminDashboardController extends ChangeNotifier{
   bool obscureAdminPin = true;
   bool savingAdminPin = false;
   String adminPin = '1234';
-  String? adminPinError;
-  String? adminPinStatus;
+  String? saveAdminPinErrorMessage;
 
   //-------------------------------------------------print require information
 
@@ -202,6 +195,7 @@ class AdminDashboardController extends ChangeNotifier{
   Future<void> initialise ({
     required Future<void> Function(String nextRoute) onAlreadyRedirect,
   }) async {
+
       final savedToken = await  SecureStorageService.getAuthToken().timeout(const Duration(seconds: 5));
       if (savedToken == null || savedToken.isEmpty) {
          throw Exception('No token');
@@ -230,8 +224,8 @@ class AdminDashboardController extends ChangeNotifier{
       //{"logo":"https://storage.worxsafety.com.au/site/public/22080/pblogo.svg","background_image":"https://storage.worxsafety.com.au/site/public/7/60dbb67c245b3_bg-masthead.jpg","slug":"pinkbatteries","name":"HUGH ARTHUR TORNEY","trading_name":"Pink Batteries"}
       await SecureStorageService.saveClient(jsonEncode(clientJson));
 
-      final clientLogo = clientJson['logo'];
-      final clientBackgroundImage = clientJson['background_image'];
+      final clientLogo = clientJson['logo'] as String?;
+      final clientBackgroundImage = clientJson['background_image'] as String?;
       final clientTradingName = clientJson['trading_name'];
       final clientName = clientJson['name'];
       final clientSlug = clientJson['slug'];
@@ -242,18 +236,13 @@ class AdminDashboardController extends ChangeNotifier{
       //for welcome headeer
       clientDisplayName = clientTradingName;
 
-      if (clientLogo != null) {
-        _useCustomLogo = true;
-        logoImageUrl = clientLogo;
-      }
-
-      if (clientBackgroundImage != null) {
-        _useCustomBackground = true;
-        backgroundImage = clientBackgroundImage;
-      }
+      final logoBackgroundModel = await LogosBackground.create(customTopLogUrl: clientLogo, customBackground: clientBackgroundImage);
+      await logoBackgroundModel.saveTolocal();
 
       // Load client logo bytes from SecureStorage or use default
-      await _loadClientLogoBytes();
+      topLogo = await SecureStorageService.getClientTopLogoBytes();
+      bottomLogo = await SecureStorageService.getClientTopLogoBytes();
+      background = await SecureStorageService.getClientBackgroundBytes();
 
       //everytime refetch sites
       final sitesJson = await ApiService.fetchVisitorSites(savedToken).timeout(const Duration(seconds: 10));
@@ -310,33 +299,6 @@ class AdminDashboardController extends ChangeNotifier{
     }
   }
 
-    /// Load client logo bytes from SecureStorage
-  /// If not available, load default WorxSafety logo from assets
-  Future<void> _loadClientLogoBytes() async {
-    try {
-      // Try to get client logo bytes from SecureStorage
-      final storedLogoBytes = await SecureStorageService.getClientLogoBytes();
-
-      if (storedLogoBytes != null && storedLogoBytes.isNotEmpty) {
-        clientLogoBytes = storedLogoBytes; //use custom logo
-      } else {
-        // Load default logo from assets
-        final ByteData data = await rootBundle.load('lib/assets/images/WorxSafety_Logo_NoShadow.png');
-        clientLogoBytes = data.buffer.asUint8List();
-      }
-    } catch (e) {
-      // If everything fails, try to load default logo
-      try {
-        final ByteData data = await rootBundle.load('lib/assets/images/WorxSafety_Logo_NoShadow.png');
-        clientLogoBytes = data.buffer.asUint8List();
-        debugPrint('Fallback to default logo (${clientLogoBytes!.length} bytes)');
-      } catch (e2) {
-        debugPrint('Failed to load default logo: $e2');
-        clientLogoBytes = null; // Will be handled by BadgeGenerator fallback
-      }
-    }
-  }
-
   //-----------------------------------------------admin pin section
   void changePasswordVisibility () {
     //display the password
@@ -345,39 +307,25 @@ class AdminDashboardController extends ChangeNotifier{
   }
 
   Future<void> onSaveAdminPin() async {
+
+    savingAdminPin = true;
+    saveAdminPinErrorMessage = null;
     final pin = adminPinCtrl.text.trim();
     if (pin.length < 4) {
-      adminPinError = 'Password must be at least 4 characters.';
-      adminPinStatus = null;
+      saveAdminPinErrorMessage = 'Password must be at least 4 characters.';
       notifyListeners();
       return;
     }
 
-    savingAdminPin = true;
-    adminPinError = null;
-    adminPinStatus = null;
-    notifyListeners();
-
     try {
       await SecureStorageService.saveAdminPin(pin);
-      adminPinStatus = 'Password updated successfully.';
-      onUiMessage?.call(
-        const UiMessage(
-          text: 'New admin pin saved',
-          type: UiMessageType.success,
-        ),
-      );
+      adminPin = pin;
     } catch (e) {
-      adminPinStatus = 'Password updated successfully.';
-      onUiMessage?.call(
-        const UiMessage(
-          text: 'Save admin pin failed',
-          type: UiMessageType.success,
-        ),
-      );
+      saveAdminPinErrorMessage = 'Save failed: $e';
+      debugPrint('Error saving admin pin: $e');
     } finally {
-      notifyListeners();
       savingAdminPin = false;
+      notifyListeners();
     }
   }
   
@@ -407,7 +355,7 @@ Future<void> initializePrinter() async {
     }
 
 
-    // 模拟成功/失败
+    // simlation fail
     _isInitializedPrinter = true; // 或 false 如果失败
 
     if (!_isInitializedPrinter) {
@@ -508,10 +456,9 @@ Future<void> initializePrinter() async {
       company: reqCompany ? 'ABC Construction' : null,
       address: reqAddress ? '123 Main St, Sydney' : null,
       supervisor: reqPersonVisiting ? 'Barry Wang' : null,
-      signInTime: timezoneSnapshot == null ? null : DateTime.now().toString(),
+      signInTime: timezoneSnapshot == null ? null : DateTime.now().toIso8601String(),
       siteName: resolveSiteHeading(currentSite,'Visitor Badge'),
-      clientLogoBytes: clientLogoBytes, // Use client logo bytes if available
-      clientLogoUrl: logoImageUrl, // Pass URL for direct download
+      clientLogoBytes: topLogo, // Use client logo bytes if available
       visitorPhotoBytes: reqVisitorPhoto ? Uint8List(1) : null, // Dummy photo data for preview
     );
 

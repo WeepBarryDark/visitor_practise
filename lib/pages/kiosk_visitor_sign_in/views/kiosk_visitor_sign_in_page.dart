@@ -21,6 +21,7 @@ class _KioskVisitorSignInPageState extends State<KioskVisitorSignInPage> {
   void initState() {
     super.initState();
     _kioskVisitorSignIncontroller = KioskVisitorSignInController();
+    _kioskVisitorSignIncontroller.initialise();
   }
 
   @override
@@ -33,8 +34,7 @@ class _KioskVisitorSignInPageState extends State<KioskVisitorSignInPage> {
     }
     
     return BackgroundImageParent(
-      webNotAsset: false,
-      customBackgroundUrl: _kioskVisitorSignIncontroller.backgroundImageUrl,
+      backgroundBytes: _kioskVisitorSignIncontroller.background!,
       mainWidget: KioskGuardParent(child:KioskVisitorSignInMain(kioskVisitorSignInController: _kioskVisitorSignIncontroller,maxBodyWidth:maxBodyWidth)),
     );
   }

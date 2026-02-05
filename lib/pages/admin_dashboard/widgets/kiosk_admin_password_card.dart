@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/theme/app_theme.dart';
 import 'package:visitor_practise/pages/admin_dashboard/controllers/admin_dashboard_controller.dart';
+import 'package:visitor_practise/shared_widgets/parent_widgets/ui_message.dart';
 
 class KioskAdminPasswordCard extends StatelessWidget {
   const KioskAdminPasswordCard({
@@ -41,14 +42,23 @@ class KioskAdminPasswordCard extends StatelessWidget {
                     ),
                     onPressed: adminController.changePasswordVisibility,
                   ),
-                  errorText: adminController.adminPinError,
+                  errorText: adminController.saveAdminPinErrorMessage,
                   helperText: 'Minimum 4 characters. Numbers only recommended.',
                   //errorText: adminPinError,
                 ),
               ),
               const SizedBox(height: 12),
               FilledButton.icon(
-                onPressed:  adminController.onSaveAdminPin,
+                onPressed: () async {
+                  await adminController.onSaveAdminPin();
+                  if (!context.mounted) return;
+
+                  if (adminController.saveAdminPinErrorMessage == null) {
+                    context.showSuccess('Admin pin saved successfully');
+                  } else {
+                    context.showError(adminController.saveAdminPinErrorMessage?? "error occurred");
+                  }
+                },
                 icon: const Icon(Icons.save),
                 label: const Text('Save Password'),
               ),

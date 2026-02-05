@@ -36,8 +36,7 @@ class _KioskDashboardPageState extends State<KioskDashboardPage> {
     }
     
     return BackgroundImageParent(
-       webNotAsset: false,
-       customBackgroundUrl: _kioskDashboardController.backgroundImageUrl,
+       backgroundBytes: _kioskDashboardController.background!,
        mainWidget: KioskGuardParent(child:KioskDashboardMain(kioskController: _kioskDashboardController,maxBodyWidth:maxBodyWidth)),
     );
   }

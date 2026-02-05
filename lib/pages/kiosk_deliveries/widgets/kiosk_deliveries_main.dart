@@ -23,7 +23,7 @@ class KioskDeliveriesMain extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxBodyWidth),
           child: KioskBody(
-              headLogoUrl: kioskDeliveriesController.logoImageUrl, 
+              topLogoBytes: kioskDeliveriesController.topLogo!, 
               siteTitle: "test", 
               printReady: true, 
               supervisorName: "Barry Wang",
@@ -92,7 +92,7 @@ class KioskDeliveriesMain extends StatelessWidget {
                   ],
                 ),
               ),
-              buttonLogoUrl: kioskDeliveriesController.powerByLogoUrl,
+              bottomLogoBytes: kioskDeliveriesController.bottomLogo!,
             ),
         ),
       ),

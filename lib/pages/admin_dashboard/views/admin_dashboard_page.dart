@@ -21,32 +21,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   void initState() {
     super.initState();
     _dashboardController = AdminDashboardController();
-
-    _dashboardController.onUiMessage = (message) {
-      if (!mounted) return;
-
-      Color bgColor;
-      switch (message.type) {
-        case UiMessageType.success:
-          bgColor = Colors.green;
-          break;
-        case UiMessageType.error:
-          bgColor = Colors.red;
-          break;
-        case UiMessageType.warning:
-          bgColor = Colors.orange;
-          break;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message.text),
-          backgroundColor: bgColor,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    };
-
+    
     _dashboardController.initialise(
       onAlreadyRedirect:(nextRoute) async => _handleAutoNavigation(nextRoute),
     );
@@ -54,20 +29,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Future<void> _handleAutoNavigation(String nextRoute) async {
-    final nav = Navigator.of(context);
-    final messagerWindow = ScaffoldMessenger.of(context);
-
     try {
-      nav.pushReplacementNamed(nextRoute);
+      Navigator.of(context).pushReplacementNamed(nextRoute);
     } catch (e) {
       if (!mounted) return;
-      messagerWindow.showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Offline or Server Unreachable. Check Internet Connection and restart this app. If it's not internet issue, please contact developer.",
-          ),
-          duration: Duration(seconds: 5),
-        ),
+      context.showError(
+        "Offline or Server Unreachable. Check Internet Connection and restart this app. If it's not internet issue, please contact developer.",
+        duration: const Duration(seconds: 5),
       );
     }
   }
@@ -87,8 +55,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         return AppShell( 
           title: 'Admin Dashboard',
           child:  BackgroundImageParent(
-            webNotAsset: _dashboardController.useCustomBackground,
-            customBackgroundUrl: _dashboardController.backgroundImage,
+            backgroundBytes: _dashboardController.background!,
             mainWidget: AdminDashboardMain(adminDashboardController: _dashboardController, maxBodyWidth: maxBodyWidth)
           ),
         );

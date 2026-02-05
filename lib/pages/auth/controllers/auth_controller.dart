@@ -7,6 +7,7 @@ import 'package:visitor_practise/core/constants/app_routes.dart';
 
 import 'package:visitor_practise/core/constants/server_link.dart';
 import 'package:visitor_practise/core/models/auth_nav_decision.dart';
+import 'package:visitor_practise/core/models/logos_background.dart';
 import 'package:visitor_practise/services/api_service.dart';
 
 import 'package:visitor_practise/services/secure_storage_service.dart';
@@ -234,15 +235,12 @@ class AuthController extends ChangeNotifier {
         final clientJson = await ApiService.fetchVisitorClient(savedToken).timeout(const Duration(seconds: 5));
         await SecureStorageService.saveClient(jsonEncode(clientJson));
 
-        // Download and save client logo as Uint8List
         final logoUrl = clientJson['logo'] as String?;
-        if (logoUrl != null && logoUrl.isNotEmpty) {
-          final logoBytes = await ApiService.fetchMainLogo(logoUrl).timeout(const Duration(seconds: 5));
-          if (logoBytes != null && logoBytes.isNotEmpty) {
-            await SecureStorageService.saveClientLogoBytes(logoBytes);
-            debugPrint('Client logo downloaded and saved successfully');
-          }
-        }
+        final bgUrl = clientJson['background_image'] as String?;
+
+        final logoBackgroundModel = await LogosBackground.create(customTopLogUrl: logoUrl, customBackground: bgUrl);
+        await logoBackgroundModel.saveTolocal();
+
       } catch (e) {
         debugPrint('Failed to fetch/save client logo: $e');
         // Continue even if client logo fetch fails

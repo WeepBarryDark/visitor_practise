@@ -21,6 +21,7 @@ class _KioskVisitorFinalBadgePageState extends State<KioskVisitorFinalBadgePage>
   void initState() {
     super.initState();
     _kioskVisitorFinalBadgeController = KioskVisitorFinalBadgeController();
+    _kioskVisitorFinalBadgeController.initialise();
   }
 
  
@@ -34,8 +35,7 @@ class _KioskVisitorFinalBadgePageState extends State<KioskVisitorFinalBadgePage>
     }
     
     return BackgroundImageParent(
-      webNotAsset: false,
-      customBackgroundUrl: _kioskVisitorFinalBadgeController.backgroundImageUrl,
+      backgroundBytes: _kioskVisitorFinalBadgeController.background!,
       mainWidget: KioskGuardParent(child:KioskVisitorFinalBadgeMain(kioskVisitorFinalBadgeController: _kioskVisitorFinalBadgeController,maxBodyWidth:maxBodyWidth)),
     );
   }

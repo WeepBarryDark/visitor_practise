@@ -1,29 +1,25 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/constants/app_routes.dart';
-import 'package:visitor_practise/core/constants/server_link.dart';
+import 'package:visitor_practise/core/models/logos_background.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
 import 'package:visitor_practise/services/api_service.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 
 class NewSiterControllder extends ChangeNotifier {
+  Uint8List? topLogo;
+  Uint8List? bottomLogo;
+  Uint8List? background;
+
 
   bool _isCheckingInitialSite = true;
   bool get isCheckingInitialSite => _isCheckingInitialSite;
 
   bool _hasError = false;
   bool get hasError => _hasError;
-
-  bool _useCustomBackground = false;
-  bool get useCustomBackground => _useCustomBackground;
-  String backgroundImage = ServerLink.defaultBackgroup;
-
-  bool _useCustomLogo = false;
-  bool get useCustomLogo => _useCustomLogo;
-  String logoImageUrl = ServerLink.defaultHeadLogo;
-
 
   List<SiteItem> _allSites = [];
   List<SiteItem> get allSites => _allSites;
@@ -63,15 +59,12 @@ class NewSiterControllder extends ChangeNotifier {
         throw Exception('No client essential data collected');
       }
 
-      if (clientLogo != null) {
-        _useCustomLogo = true;
-        logoImageUrl = clientLogo;
-      }
+      final logoBackgroundModel = await LogosBackground.create(customTopLogUrl: clientLogo, customBackground: clientBackgroundImage);
+      await logoBackgroundModel.saveTolocal();
 
-      if (clientBackgroundImage != null) {
-        _useCustomBackground = true;
-        backgroundImage = clientBackgroundImage;
-      }
+      topLogo = await SecureStorageService.getClientTopLogoBytes();
+      bottomLogo = await SecureStorageService.getClientTopLogoBytes();
+      background = await SecureStorageService.getClientBackgroundBytes();
 
       //everytime refetch sites
       final sitesJson = await ApiService.fetchVisitorSites(savedToken).timeout(const Duration(seconds: 10));

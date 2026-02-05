@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/constants/app_routes.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
 import 'package:visitor_practise/pages/new_site/controllers/new_siter_controllder.dart';
-import 'package:visitor_practise/services/helper/logo_builder.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 import 'package:visitor_practise/shared_widgets/field_input_widgets/search_field.dart';
 import 'package:visitor_practise/shared_widgets/card_template_widgets/site_card.dart';
@@ -44,11 +43,10 @@ class NewSiteMain extends StatelessWidget {
             ]
           ),
           child: Center(
-            child: FittedBox(
-            fit:BoxFit.contain,
-            child: newSiteControllder.useCustomLogo
-              ? logoBuilder(newSiteControllder.logoImageUrl, 48)
-              : Image.asset(newSiteControllder.logoImageUrl, height: 48),
+            child: Image.memory(
+              newSiteControllder.topLogo!,
+              height: 48,
+              fit: BoxFit.contain,
             )
           ),
         ),

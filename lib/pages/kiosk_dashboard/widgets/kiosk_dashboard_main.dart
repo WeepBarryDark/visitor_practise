@@ -23,7 +23,7 @@ class KioskDashboardMain extends StatelessWidget {
         child: ConstrainedBox(
            constraints: BoxConstraints(maxWidth: maxBodyWidth),
           child: KioskBody(
-            headLogoUrl: kioskController.logoImageUrl, 
+            topLogoBytes: kioskController.topLogo!, 
             siteTitle: "test", 
             printReady: true, 
             supervisorName: "Barry Wang",
@@ -46,7 +46,7 @@ class KioskDashboardMain extends StatelessWidget {
                 ),
               ),
             ),
-            buttonLogoUrl: kioskController.powerByLogoUrl,
+            bottomLogoBytes: kioskController.bottomLogo!,
             footerAction: IconButton(
               tooltip: 'Admin Sign In',
               icon: const Icon(Icons.admin_panel_settings),

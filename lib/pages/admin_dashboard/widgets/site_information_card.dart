@@ -30,11 +30,10 @@ class SiteInformationCard extends StatelessWidget {
             ),
             const SizedBox(height: 12,),
             Center(
-              child: FittedBox(
-            fit:BoxFit.contain,
-                child: adminController.useCustomLogo
-                  ? logoBuilder(adminController.logoImageUrl, 48)
-                  : Image.asset(adminController.logoImageUrl, height: 48),
+              child: Image.memory(
+                    adminController.topLogo!,
+                    height: 48,
+                    fit: BoxFit.contain,
                 )
             ),
             const SizedBox(height: 16),

@@ -1,23 +1,24 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 
 class KioskDashboardController extends ChangeNotifier {
+  //Background and Logo------------------------------------
+  Uint8List? topLogo;
+  Uint8List? bottomLogo;
+  Uint8List? background;
 
   // status
   bool _isCheckingInitial = true;
   bool get isCheckingInitial => _isCheckingInitial; 
 
-  bool _useCustomBackground = false;
-  String backgroundImageUrl = "lib/assets/images/worx_inductions_cover.jpg";
-
-  bool _useCustomLogo = true;
-  String logoImageUrl = "lib/assets/images/WorxSafety_Logo_NoShadow.png";
-
-  String powerByLogoUrl = "lib/assets/images/Worx_PoweredBy_Logo_Mono.png";
-
   Future<void> initializing () async {
+    topLogo = await SecureStorageService.getClientTopLogoBytes();
+    bottomLogo = await SecureStorageService.getClientTopLogoBytes();
+    background = await SecureStorageService.getClientBackgroundBytes();
+    
     //check local token
     //check local selected site
     //check local client

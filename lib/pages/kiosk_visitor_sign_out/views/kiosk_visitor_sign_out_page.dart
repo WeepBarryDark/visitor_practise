@@ -20,6 +20,7 @@ class _KioskVisitorSignOutPageState extends State<KioskVisitorSignOutPage> {
   void initState() {
     super.initState();
     _kioskVisitorSignOutController = KioskVisitorSignOutController();
+    _kioskVisitorSignOutController.initialise();
   }
 
  
@@ -33,8 +34,7 @@ class _KioskVisitorSignOutPageState extends State<KioskVisitorSignOutPage> {
     }
     
     return BackgroundImageParent(
-       webNotAsset: false,
-       customBackgroundUrl: _kioskVisitorSignOutController.backgroundImageUrl,
+       backgroundBytes: _kioskVisitorSignOutController.background!,
        mainWidget: KioskGuardParent(child:KioskVisitorSignOutMain(kioskVisitorSignOutController: _kioskVisitorSignOutController,maxBodyWidth:maxBodyWidth)),
     );
   }

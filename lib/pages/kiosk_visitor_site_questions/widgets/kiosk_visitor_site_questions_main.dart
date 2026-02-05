@@ -22,7 +22,7 @@ class KioskVisitorSiteQuestionsMain extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxBodyWidth),
           child: KioskBody(
-              headLogoUrl: kioskVisitorSiteQuestionsController.logoImageUrl, 
+              topLogoBytes: kioskVisitorSiteQuestionsController.topLogo!, 
               siteTitle: "test", 
               printReady: true, 
               supervisorName: "Barry Wang",
@@ -62,7 +62,7 @@ class KioskVisitorSiteQuestionsMain extends StatelessWidget {
                   ],
                 ),
               ),
-              buttonLogoUrl: kioskVisitorSiteQuestionsController.powerByLogoUrl,
+              bottomLogoBytes: kioskVisitorSiteQuestionsController.bottomLogo!,
             ),
         ),
       ),
