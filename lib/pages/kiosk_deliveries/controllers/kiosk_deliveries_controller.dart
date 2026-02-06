@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 
-class KioskDeliveriesController {
+class KioskDeliveriesController extends ChangeNotifier {
   Uint8List? topLogo;
   Uint8List? bottomLogo;
   Uint8List? background;
@@ -21,6 +21,8 @@ class KioskDeliveriesController {
     topLogo = await SecureStorageService.getClientTopLogoBytes();
     bottomLogo = await SecureStorageService.getClientTopLogoBytes();
     background = await SecureStorageService.getClientBackgroundBytes();
+
+    notifyListeners();
   }
 
 

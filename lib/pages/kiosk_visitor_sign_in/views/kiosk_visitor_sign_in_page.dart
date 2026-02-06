@@ -25,6 +25,12 @@ class _KioskVisitorSignInPageState extends State<KioskVisitorSignInPage> {
   }
 
   @override
+  void dispose() {
+    _kioskVisitorSignIncontroller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final maxBodyWidth = AppBreakpoints.getContentWidth(width);

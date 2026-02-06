@@ -23,6 +23,12 @@ class _KioskVisitorSignOutPageState extends State<KioskVisitorSignOutPage> {
     _kioskVisitorSignOutController.initialise();
   }
 
+  @override
+  void dispose() {
+    _kioskVisitorSignOutController.dispose();
+    super.dispose();
+  }
+
  
   @override
   Widget build(BuildContext context) {

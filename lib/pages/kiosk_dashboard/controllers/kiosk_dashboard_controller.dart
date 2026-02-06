@@ -16,12 +16,15 @@ class KioskDashboardController extends ChangeNotifier {
 
   Future<void> initializing () async {
     topLogo = await SecureStorageService.getClientTopLogoBytes();
-    bottomLogo = await SecureStorageService.getClientTopLogoBytes();
+    bottomLogo = await SecureStorageService.getClientBottomLogoBytes();
     background = await SecureStorageService.getClientBackgroundBytes();
-    
+
     //check local token
     //check local selected site
     //check local client
+
+    _isCheckingInitial = false;
+    notifyListeners();
   }
 
   Future<void> logOutKioskDashboard () async {

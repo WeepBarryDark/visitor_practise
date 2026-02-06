@@ -24,6 +24,12 @@ class _KioskVisitorBadgeRetrievePageState extends State<KioskVisitorBadgeRetriev
     _kioskVisitorBadgeRetrieveController.initialise();
   }
 
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _kioskVisitorBadgeRetrieveController.dispose();
+    super.dispose();
+  }
  
   @override
   Widget build(BuildContext context) {

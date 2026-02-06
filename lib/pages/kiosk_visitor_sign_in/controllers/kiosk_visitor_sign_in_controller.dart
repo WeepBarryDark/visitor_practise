@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/models/contact_detail.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 
-class KioskVisitorSignInController {
+class KioskVisitorSignInController extends ChangeNotifier {
   //Background and Logo------------------------------------
   Uint8List? topLogo;
   Uint8List? bottomLogo;
@@ -48,6 +48,7 @@ class KioskVisitorSignInController {
     topLogo = await SecureStorageService.getClientTopLogoBytes();
     bottomLogo = await SecureStorageService.getClientTopLogoBytes();
     background = await SecureStorageService.getClientBackgroundBytes();
+    notifyListeners();
   }
 }
 

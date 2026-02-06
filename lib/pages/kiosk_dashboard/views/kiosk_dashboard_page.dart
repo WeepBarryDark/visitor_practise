@@ -20,9 +20,13 @@ class _KioskDashboardPageState extends State<KioskDashboardPage> {
   void initState() {
     super.initState();
     _kioskDashboardController = KioskDashboardController();
-
     _kioskDashboardController.initializing();
-    
+  }
+
+  @override
+  void dispose() {
+    _kioskDashboardController.dispose();
+    super.dispose();
   }
 
 
@@ -31,13 +35,23 @@ class _KioskDashboardPageState extends State<KioskDashboardPage> {
     final width = MediaQuery.of(context).size.width;
     final maxBodyWidth = AppBreakpoints.getContentWidth(width);
 
-    if (!_kioskDashboardController.isCheckingInitial) {
-      return const LoadingCircleInterface();
-    }
-    
-    return BackgroundImageParent(
-       backgroundBytes: _kioskDashboardController.background!,
-       mainWidget: KioskGuardParent(child:KioskDashboardMain(kioskController: _kioskDashboardController,maxBodyWidth:maxBodyWidth)),
+    return ListenableBuilder(
+      listenable: _kioskDashboardController,
+      builder: (context, child) {
+        if (_kioskDashboardController.isCheckingInitial) {
+          return const LoadingCircleInterface();
+        }
+
+        return BackgroundImageParent(
+          backgroundBytes: _kioskDashboardController.background!,
+          mainWidget: KioskGuardParent(
+            child: KioskDashboardMain(
+              kioskController: _kioskDashboardController,
+              maxBodyWidth: maxBodyWidth,
+            ),
+          ),
+        );
+      },
     );
   }
 }

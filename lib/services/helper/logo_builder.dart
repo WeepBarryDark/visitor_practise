@@ -3,7 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 Widget? logoBuilder(double height, Uint8List bytes) {
-  return Image.memory(bytes, height: height, fit: BoxFit.contain);
+  // Check if the bytes contain SVG data
+  final snippet = String.fromCharCodes(bytes.take(64));
+  final isSvg = snippet.contains('<svg') || snippet.contains('<?xml');
+
+  return isSvg
+      ? SvgPicture.memory(bytes, height: height, fit: BoxFit.contain)
+      : Image.memory(bytes, height: height, fit: BoxFit.contain);
 }
 /* old 
 /// Helper function to build logo widgets (SVG or PNG, network or asset)

@@ -24,6 +24,11 @@ class _KioskVisitorFinalBadgePageState extends State<KioskVisitorFinalBadgePage>
     _kioskVisitorFinalBadgeController.initialise();
   }
 
+  @override
+  void dispose() {
+    _kioskVisitorFinalBadgeController.dispose();
+    super.dispose();
+  }
  
   @override
   Widget build(BuildContext context) {

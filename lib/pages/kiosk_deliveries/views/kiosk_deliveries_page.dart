@@ -25,6 +25,12 @@ class _KioskDeliveriesPageState extends State<KioskDeliveriesPage> {
     _kioskDeliveriesController.initialise();
   }
 
+  @override
+  void dispose() {
+    _kioskDeliveriesController.dispose();
+    super.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) {

@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 
-class KioskVisitorBadgeRetrieveController {
+class KioskVisitorBadgeRetrieveController extends ChangeNotifier{
   //Background and Logo------------------------------------
   Uint8List? topLogo;
   Uint8List? bottomLogo;
@@ -21,5 +21,7 @@ class KioskVisitorBadgeRetrieveController {
     topLogo = await SecureStorageService.getClientTopLogoBytes();
     bottomLogo = await SecureStorageService.getClientTopLogoBytes();
     background = await SecureStorageService.getClientBackgroundBytes();
+    notifyListeners();
+    
   }
 }
