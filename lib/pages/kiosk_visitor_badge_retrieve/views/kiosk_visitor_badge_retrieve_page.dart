@@ -26,7 +26,6 @@ class _KioskVisitorBadgeRetrievePageState extends State<KioskVisitorBadgeRetriev
 
   @override
   void dispose() {
-    // TODO: implement dispose
     _kioskVisitorBadgeRetrieveController.dispose();
     super.dispose();
   }
@@ -36,13 +35,23 @@ class _KioskVisitorBadgeRetrievePageState extends State<KioskVisitorBadgeRetriev
     final width = MediaQuery.of(context).size.width;
     final maxBodyWidth = AppBreakpoints.getContentWidth(width);
 
-    if (!_kioskVisitorBadgeRetrieveController.isCheckingInitial) {
-      return const LoadingCircleInterface();
-    }
-    
-    return BackgroundImageParent(
-        backgroundBytes: _kioskVisitorBadgeRetrieveController.background!,
-        mainWidget: KioskGuardParent(child:KioskVisitorBadgeRetrieveMain(kioskVisitorBadgeRetrieveController: _kioskVisitorBadgeRetrieveController,maxBodyWidth:maxBodyWidth)),
+    return ListenableBuilder(
+      listenable: _kioskVisitorBadgeRetrieveController,
+      builder: (context, child) {
+        if (_kioskVisitorBadgeRetrieveController.isCheckingInitial) {
+          return const LoadingCircleInterface();
+        }
+
+        return BackgroundImageParent(
+          backgroundBytes: _kioskVisitorBadgeRetrieveController.background!,
+          mainWidget: KioskGuardParent(
+            child: KioskVisitorBadgeRetrieveMain(
+              kioskVisitorBadgeRetrieveController: _kioskVisitorBadgeRetrieveController,
+              maxBodyWidth: maxBodyWidth,
+            ),
+          ),
+        );
+      },
     );
   }
 }

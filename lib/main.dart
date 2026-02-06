@@ -41,7 +41,7 @@ class WorxVistor extends StatelessWidget {
 
       routes: {
         '/': (context) => const AuthPage(),
-        AppRoutes.dashboard: (context) => const AdminDashboardPage(),
+        AppRoutes.adminDashboard: (context) => const AdminDashboardPage(),
         AppRoutes.newSite: (context) => const NewSitePage(),
 
         AppRoutes.kioskDashboard: (context) => const KioskDashboardPage(),

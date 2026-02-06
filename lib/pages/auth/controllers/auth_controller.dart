@@ -252,7 +252,7 @@ class AuthController extends ChangeNotifier {
         //if only have one site -> save as the selectedSite -> go dashboard
         final singleSite = sites.first as Map<String, dynamic>;
         await SecureStorageService.saveSelectedSite(jsonEncode(singleSite));
-        return const AuthNavDecision.go(AppRoutes.dashboard);
+        return const AuthNavDecision.go(AppRoutes.adminDashboard);
       }
     } on TimeoutException {
       debugPrint("Time out with fetch site API, please check your internet, App reset");

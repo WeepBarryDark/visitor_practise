@@ -38,7 +38,7 @@ class SecureStorageService {
   static const String _keyBackground = 'background';
 
   //Unexpected crash or exit - record last accessed location
-  static const String _keyLastAccess = 'last_access';
+  static const String _keyLastKioskAccess = 'last_access';
 
   // ============================================================================
   // AUTHENTICATION
@@ -109,7 +109,7 @@ class SecureStorageService {
   /// Get visitor sites data (JSON string)
   static Future<String?> getSites() async {
     try {
-      return await _storage.read(key: _keyLastAccess);
+      return await _storage.read(key: _keySites);
     } catch (e) {
       debugPrint('Error reading sites: $e');
       return null;
@@ -136,18 +136,18 @@ class SecureStorageService {
   }
   ///------------------------------------------ Last access 
   /// Save last accessed page (string)
-    static Future<void> saveLastAccess(String locationString) async {
+    static Future<void> saveLastKioskAccess(String locationString) async {
     try {
-      await _storage.write(key: _keyLastAccess, value: locationString);
+      await _storage.write(key: _keyLastKioskAccess, value: locationString);
     } catch (e) {
       debugPrint('Error saving sites: $e');
     }
   }
 
   /// Get visitor sites data (JSON string)
-  static Future<String?> getLastAccess() async {
+  static Future<String?> getLastKioskAccess() async {
     try {
-      return await _storage.read(key: _keyLastAccess);
+      return await _storage.read(key: _keyLastKioskAccess);
     } catch (e) {
       debugPrint('Error reading sites: $e');
       return null;

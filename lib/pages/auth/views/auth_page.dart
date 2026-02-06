@@ -68,20 +68,22 @@ class _AuthPageState extends State<AuthPage> {
 
     return Scaffold (
       body:Center(
-        child: AnimatedBuilder (animation: _authController, builder: (context, _) {
-          return SingleChildScrollView (
-            padding: const EdgeInsets.all(16),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxBodyWidth),
-              child: TabletAuthMain(
-                  siteTitle: 'Worx Kiosk - Visitor Management',
-                  logoUrlTop: ServerLink.defaultTopLogo,
-                  logoUrlBottom: ServerLink.defaultBottomLogo,
-                  authController: _authController,
+        child: ListenableBuilder (
+          listenable: _authController, 
+          builder: (context, _) {
+            return SingleChildScrollView (
+              padding: const EdgeInsets.all(16),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxBodyWidth),
+                child: TabletAuthMain(
+                    siteTitle: 'Worx Kiosk - Visitor Management',
+                    logoUrlTop: ServerLink.defaultTopLogo,
+                    logoUrlBottom: ServerLink.defaultBottomLogo,
+                    authController: _authController,
+                ),
               ),
-            ),
-          );
-        }
+            );
+          }
         ),
       )
     );

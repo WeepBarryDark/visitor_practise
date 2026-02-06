@@ -1,8 +1,8 @@
 class AppRoutes {
   //AppRoutes._(); // Prevents instantiation
 
-  static const String login= '/';
-  static const String dashboard ='/dashboard'; //admin adshboard
+  static const String auth= '/';
+  static const String adminDashboard ='/admin-dashboard'; //admin adshboard
   static const String newSite = '/new-site';//select another site
 
   static const String kioskDashboard = '/visitor-kiosk'; //entry point of visitor kiosk

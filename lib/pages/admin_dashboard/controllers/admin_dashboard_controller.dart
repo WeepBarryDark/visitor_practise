@@ -271,7 +271,7 @@ class AdminDashboardController extends ChangeNotifier {
     //if last saved location is kiosk dashboard && token, selected site, setting are not empty
     */
     try {
-      final lastAccess = await SecureStorageService.getLastAccess().timeout(const Duration(seconds: 50));
+      final lastAccess = await SecureStorageService.getLastKioskAccess().timeout(const Duration(seconds: 50));
       if (lastAccess == 'kiosk_dashboard')
       {
         //TODO
@@ -392,7 +392,6 @@ Future<void> initializePrinter() async {
 
   Future<void> _loadVisitorRequirements() async {
     final requirementsJson = await SecureStorageService.getAdminDashboardSettings();
-    debugPrint(requirementsJson);
     if (requirementsJson != null && requirementsJson.isNotEmpty) {
       final data = jsonDecode(requirementsJson) as Map<String, dynamic>;
       reqFullName = true;// Always required, cannot be disabled - Text

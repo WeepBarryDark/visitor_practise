@@ -96,8 +96,35 @@ class NewSiterControllder extends ChangeNotifier {
   }
 
   Future<bool> checkExistingAuth() async {
-    return false;
+    /*
+    //check if there is already an Auth Token
+    //if last saved location is kiosk dashboard && token, selected site, setting are not empty
+    */
+    try {
+      final lastAccess = await SecureStorageService.getLastKioskAccess().timeout(const Duration(seconds: 50));
+      if (lastAccess == 'kiosk_dashboard')
+      {
+        //TODO
+        final token = await SecureStorageService.getAuthToken().timeout(const Duration(seconds: 50));
+        final alreadyAuthed = token != null && token.isNotEmpty;
 
+        _hasError = false;
+        notifyListeners();
+
+        return alreadyAuthed; // return true -> jump to kiosk dashboard
+      }
+      return false;
+    } on TimeoutException {
+      // not sure what to do now, when an error and timeout
+      _hasError = true;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      // not sure what to do now, when an error and timeout
+      _hasError = true;
+      notifyListeners();
+      return false;
+    }
   }
 
   //Search Section-------------------------------------------------------------------------

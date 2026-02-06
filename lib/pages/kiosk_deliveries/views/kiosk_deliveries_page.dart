@@ -27,6 +27,7 @@ class _KioskDeliveriesPageState extends State<KioskDeliveriesPage> {
 
   @override
   void dispose() {
+    _kioskDeliveriesController.orgCtrl.dispose();
     _kioskDeliveriesController.dispose();
     super.dispose();
   }
@@ -37,13 +38,23 @@ class _KioskDeliveriesPageState extends State<KioskDeliveriesPage> {
     final width = MediaQuery.of(context).size.width;
     final maxBodyWidth = AppBreakpoints.getContentWidth(width);
 
-    if (!_kioskDeliveriesController.isCheckingInitial) {
-      return const LoadingCircleInterface();
-    }
-    
-    return BackgroundImageParent(
-       backgroundBytes: _kioskDeliveriesController.background!,
-       mainWidget: KioskGuardParent(child:KioskDeliveriesMain(kioskDeliveriesController: _kioskDeliveriesController,maxBodyWidth:maxBodyWidth)),
+    return ListenableBuilder(
+      listenable: _kioskDeliveriesController,
+      builder: (context, child) {
+        if (_kioskDeliveriesController.isCheckingInitial) {
+          return const LoadingCircleInterface();
+        }
+
+        return BackgroundImageParent(
+          backgroundBytes: _kioskDeliveriesController.background!,
+          mainWidget: KioskGuardParent(
+            child: KioskDeliveriesMain(
+              kioskDeliveriesController: _kioskDeliveriesController,
+              maxBodyWidth: maxBodyWidth,
+            ),
+          ),
+        );
+      },
     );
   }
 }

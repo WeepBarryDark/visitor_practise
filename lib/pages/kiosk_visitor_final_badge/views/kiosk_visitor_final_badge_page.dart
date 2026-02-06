@@ -35,13 +35,23 @@ class _KioskVisitorFinalBadgePageState extends State<KioskVisitorFinalBadgePage>
     final width = MediaQuery.of(context).size.width;
     final maxBodyWidth = AppBreakpoints.getContentWidth(width);
 
-    if (!_kioskVisitorFinalBadgeController.isCheckingInitial) {
-      return const LoadingCircleInterface();
-    }
-    
-    return BackgroundImageParent(
-      backgroundBytes: _kioskVisitorFinalBadgeController.background!,
-      mainWidget: KioskGuardParent(child:KioskVisitorFinalBadgeMain(kioskVisitorFinalBadgeController: _kioskVisitorFinalBadgeController,maxBodyWidth:maxBodyWidth)),
+    return ListenableBuilder(
+      listenable: _kioskVisitorFinalBadgeController,
+      builder: (context, child) {
+        if (_kioskVisitorFinalBadgeController.isCheckingInitial) {
+          return const LoadingCircleInterface();
+        }
+
+        return BackgroundImageParent(
+          backgroundBytes: _kioskVisitorFinalBadgeController.background!,
+          mainWidget: KioskGuardParent(
+            child: KioskVisitorFinalBadgeMain(
+              kioskVisitorFinalBadgeController: _kioskVisitorFinalBadgeController,
+              maxBodyWidth: maxBodyWidth,
+            ),
+          ),
+        );
+      },
     );
   }
 }

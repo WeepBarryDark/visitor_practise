@@ -19,9 +19,10 @@ class KioskDeliveriesController extends ChangeNotifier {
 
   Future<void> initialise() async {
     topLogo = await SecureStorageService.getClientTopLogoBytes();
-    bottomLogo = await SecureStorageService.getClientTopLogoBytes();
+    bottomLogo = await SecureStorageService.getClientBottomLogoBytes();
     background = await SecureStorageService.getClientBackgroundBytes();
 
+    _isCheckingInitial = false;
     notifyListeners();
   }
 

@@ -1,8 +1,9 @@
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 
-class KioskContractorSignInController {
+class KioskContractorSignInController extends ChangeNotifier{
   //Background and Logo------------------------------------
   Uint8List? topLogo;
   Uint8List? bottomLogo;
@@ -18,5 +19,7 @@ class KioskContractorSignInController {
     topLogo = await SecureStorageService.getClientTopLogoBytes();
     bottomLogo = await SecureStorageService.getClientTopLogoBytes();
     background = await SecureStorageService.getClientBackgroundBytes();
+    _isCheckingInitial = false;
+    notifyListeners();
   }
 }

@@ -102,7 +102,7 @@ class AppShell extends StatelessWidget {
               await Future.delayed(const Duration(milliseconds: 100));
 
               rootNavigator.pushNamedAndRemoveUntil(
-                AppRoutes.login,
+                AppRoutes.auth,
                 (route) => false,
               );
             },

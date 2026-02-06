@@ -35,13 +35,23 @@ class _KioskVisitorSignInPageState extends State<KioskVisitorSignInPage> {
     final width = MediaQuery.of(context).size.width;
     final maxBodyWidth = AppBreakpoints.getContentWidth(width);
 
-    if (!_kioskVisitorSignIncontroller.isCheckingInitial) {
-      return const LoadingCircleInterface();
-    }
-    
-    return BackgroundImageParent(
-      backgroundBytes: _kioskVisitorSignIncontroller.background!,
-      mainWidget: KioskGuardParent(child:KioskVisitorSignInMain(kioskVisitorSignInController: _kioskVisitorSignIncontroller,maxBodyWidth:maxBodyWidth)),
+    return ListenableBuilder(
+      listenable: _kioskVisitorSignIncontroller,
+      builder: (context, child) {
+        if (_kioskVisitorSignIncontroller.isCheckingInitial) {
+          return const LoadingCircleInterface();
+        }
+
+        return BackgroundImageParent(
+          backgroundBytes: _kioskVisitorSignIncontroller.background!,
+          mainWidget: KioskGuardParent(
+            child: KioskVisitorSignInMain(
+              kioskVisitorSignInController: _kioskVisitorSignIncontroller,
+              maxBodyWidth: maxBodyWidth,
+            ),
+          ),
+        );
+      },
     );
   }
 }

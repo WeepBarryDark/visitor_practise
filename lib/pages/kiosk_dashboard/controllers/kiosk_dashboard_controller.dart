@@ -18,6 +18,8 @@ class KioskDashboardController extends ChangeNotifier {
     topLogo = await SecureStorageService.getClientTopLogoBytes();
     bottomLogo = await SecureStorageService.getClientBottomLogoBytes();
     background = await SecureStorageService.getClientBackgroundBytes();
+    
+    await SecureStorageService.saveLastKioskAccess('kiosk_dashboard');
 
     //check local token
     //check local selected site
@@ -33,7 +35,7 @@ class KioskDashboardController extends ChangeNotifier {
       'isLastAccessKiosk': false,
     };
 
-    await SecureStorageService.saveLastAccess(jsonEncode(lastAccessedSite));
+    await SecureStorageService.saveLastKioskAccess('none');
   }
 
 }

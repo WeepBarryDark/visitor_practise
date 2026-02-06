@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:visitor_practise/core/constants/app_routes.dart';
 import 'package:visitor_practise/core/navigation/main_scaffold.dart';
 import 'package:visitor_practise/core/responsive/aap_breakpoints.dart';
 import 'package:visitor_practise/pages/admin_dashboard/controllers/admin_dashboard_controller.dart';
@@ -37,6 +38,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         "Offline or Server Unreachable. Check Internet Connection and restart this app. If it's not internet issue, please contact developer.",
         duration: const Duration(seconds: 5),
       );
+      Navigator.of(context).pushReplacementNamed(AppRoutes.auth);
     }
   }
 
@@ -45,8 +47,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     final width = MediaQuery.of(context).size.width;
     final maxBodyWidth = AppBreakpoints.getContentWidth(width);
 
-    return AnimatedBuilder(
-      animation: _dashboardController,
+    return ListenableBuilder (
+      listenable: _dashboardController,
       builder: (context, _) {
         if (_dashboardController.isCheckingInitialDashboard) {
           return const LoadingCircleInterface();

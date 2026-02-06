@@ -1,8 +1,9 @@
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 
-class KioskVisitorSiteQuestionsController {
+class KioskVisitorSiteQuestionsController extends ChangeNotifier {
   //Background and Logo------------------------------------
   Uint8List? topLogo;
   Uint8List? bottomLogo;
@@ -16,7 +17,11 @@ class KioskVisitorSiteQuestionsController {
 
   Future<void> initialise() async {
     topLogo = await SecureStorageService.getClientTopLogoBytes();
-    bottomLogo = await SecureStorageService.getClientTopLogoBytes();
+    bottomLogo = await SecureStorageService.getClientBottomLogoBytes();
     background = await SecureStorageService.getClientBackgroundBytes();
+
+    _isCheckingInitial = false;
+
+    notifyListeners();
   }
 }

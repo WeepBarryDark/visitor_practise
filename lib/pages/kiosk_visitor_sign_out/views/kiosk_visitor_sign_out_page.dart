@@ -34,14 +34,24 @@ class _KioskVisitorSignOutPageState extends State<KioskVisitorSignOutPage> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final maxBodyWidth = AppBreakpoints.getContentWidth(width);
-
-    if (!_kioskVisitorSignOutController.isCheckingInitial) {
-      return const LoadingCircleInterface();
-    }
     
-    return BackgroundImageParent(
-       backgroundBytes: _kioskVisitorSignOutController.background!,
-       mainWidget: KioskGuardParent(child:KioskVisitorSignOutMain(kioskVisitorSignOutController: _kioskVisitorSignOutController,maxBodyWidth:maxBodyWidth)),
+    return ListenableBuilder(
+      listenable: _kioskVisitorSignOutController,
+      builder: (context, child) {
+        if (_kioskVisitorSignOutController.isCheckingInitial) {
+          return const LoadingCircleInterface();
+        }
+
+        return BackgroundImageParent(
+          backgroundBytes: _kioskVisitorSignOutController.background!,
+          mainWidget: KioskGuardParent(
+            child: KioskVisitorSignOutMain(
+              kioskVisitorSignOutController: _kioskVisitorSignOutController,
+              maxBodyWidth: maxBodyWidth,
+            ),
+          ),
+        );
+      },
     );
   }
 }

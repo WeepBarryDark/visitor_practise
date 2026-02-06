@@ -23,7 +23,7 @@ class NewSiteMain extends StatelessWidget {
     await SecureStorageService.saveSelectedSite(jsonEncode(site.toJson()));
 
     if (!context.mounted) return;
-    Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
+    Navigator.of(context).pushReplacementNamed(AppRoutes.adminDashboard);
   }
 
   @override
