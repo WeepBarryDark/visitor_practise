@@ -87,9 +87,9 @@ class LogosBackgroundService {
   Future<void> saveTolocal(Uint8List bytesTopLog, Uint8List bytesBottomLog, Uint8List bytesBackground) async {
     try {
       // Save logo
-      await SecureStorageService.saveClientTopLogoBytes(bytesTopLog!);
-      await SecureStorageService.saveClientBottomLogoBytes(bytesBottomLog!);
-      await SecureStorageService.saveClientBackgroundBytes(bytesBackground!);
+      await SecureStorageService.saveClientTopLogoBytes(bytesTopLog);
+      await SecureStorageService.saveClientBottomLogoBytes(bytesBottomLog);
+      await SecureStorageService.saveClientBackgroundBytes(bytesBackground);
     } catch (e) {
       debugPrint('Failed to save LogoBackground: $e');
     }

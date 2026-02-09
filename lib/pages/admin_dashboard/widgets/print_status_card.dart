@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:another_brother/printer_info.dart' as brother;
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/theme/app_theme.dart';
@@ -92,7 +94,6 @@ class PrintStatusCard extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 12),
-              LabelValue('Initialized', adminController.isInitializedPrinter ? 'Yes' : 'No'),
               LabelValue('Printer', adminController.printerName),
               LabelValue('IP Address', adminController.printerIp),
               const SizedBox(height: 16),
@@ -109,22 +110,31 @@ class PrintStatusCard extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment<String>(
+                  segments: [
+                    const ButtonSegment<String>(
                       value: 'model',
-                      label: Text('By Model'),
+                      label: Text('Model'),
                       icon: Icon(Icons.print),
                     ),
-                    ButtonSegment<String>(
+                    const ButtonSegment<String>(
                       value: 'ip',
-                      label: Text('By IP'),
+                      label: Text('IP'),
                       icon: Icon(Icons.lan),
                     ),
+                    // USB only available on Android and Windows
+                    if (Platform.isAndroid || Platform.isWindows)
+                      const ButtonSegment<String>(
+                        value: 'usb',
+                        label: Text('USB'),
+                        icon: Icon(Icons.usb),
+                      ),
                   ],
                   selected: {adminController.printerConnectionType},
-                  onSelectionChanged: (Set<String> selection) {
-                    adminController.setPrinterConnectionType(selection.first);
-                  },
+                  onSelectionChanged: adminController.isInitializingdPrinter
+                      ? null
+                      : (Set<String> selection) {
+                          adminController.setPrinterConnectionType(selection.first);
+                        },
                 ),
               ),
               const SizedBox(height: 12),
@@ -142,6 +152,7 @@ class PrintStatusCard extends StatelessWidget {
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         'Select your Brother printer model',
@@ -151,7 +162,9 @@ class PrintStatusCard extends StatelessWidget {
                       SearchableDropdownField<brother.Model>(
                         value: adminController.selectedPrinterModel,
                         items: AdminDashboardController.supportedPrinterModels,
-                        onChanged: (model) => adminController.selectPrinterModel(model),
+                        onChanged: adminController.isInitializingdPrinter
+                            ? (_) {} // Disabled: do nothing
+                            : (model) => adminController.selectPrinterModel(model),
                         dialogTitle: 'Select Printer Model',
                         dialogIcon: Icons.print,
                         placeholder: 'Select printer model',
@@ -160,22 +173,32 @@ class PrintStatusCard extends StatelessWidget {
                         emptyMessage: 'No printer models found',
                         emptyHint: 'Try adjusting your search',
                         itemName: (model) => model.getName(),
-                        itemId: (model) => model.getId().toString(),
+                        itemId: (model) => model.getName().toString(),
                         searchMatcher: (model, query) => model.getName().toLowerCase().contains(query),
                         showClearButton: false,
                       ),
                       const SizedBox(height: 12),
                       FilledButton.icon(
-                        onPressed: adminController.selectedPrinterModel == null ? null : () {
-                          // TODO: Implement connect by model
-                        },
-                        icon: const Icon(Icons.link, size: 18),
-                        label: const Text('Connect'),
+                        onPressed: (adminController.selectedPrinterModel == null || adminController.isInitializingdPrinter)
+                            ? null
+                            : adminController.connectToThePrint,
+                        icon: adminController.isInitializingdPrinter
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : const Icon(Icons.link, size: 18),
+                        label: Text(adminController.isInitializingdPrinter ? 'Connecting...' : 'Connect'),
                       ),
                     ],
                   ),
                 ),
-              ] else ...[
+              ],
+              if (adminController.printerConnectionType == 'ip') ...[
                 // IP address input
                 Container(
                   padding: const EdgeInsets.all(14),
@@ -188,6 +211,7 @@ class PrintStatusCard extends StatelessWidget {
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         'Enter the IP address of your Brother printer',
@@ -196,7 +220,7 @@ class PrintStatusCard extends StatelessWidget {
                       const SizedBox(height: 12),
                       TextField(
                         controller: adminController.printerIpCtrl,
-                        enabled: !adminController.isAddingManualPrinter,
+                        enabled: !adminController.isInitializingdPrinter,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           labelText: 'Printer IP Address',
@@ -208,10 +232,10 @@ class PrintStatusCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       FilledButton.icon(
-                        onPressed: adminController.isAddingManualPrinter ? null : () {
-                          // TODO: Implement connect by IP
-                        },
-                        icon: adminController.isAddingManualPrinter
+                        onPressed: adminController.isInitializingdPrinter
+                            ? null
+                            : adminController.connectToThePrint,
+                        icon: adminController.isInitializingdPrinter
                             ? const SizedBox(
                                 width: 16,
                                 height: 16,
@@ -223,7 +247,110 @@ class PrintStatusCard extends StatelessWidget {
                                 ),
                               )
                             : const Icon(Icons.link, size: 18),
-                        label: Text(adminController.isAddingManualPrinter ? 'Connecting...' : 'Connect'),
+                        label: Text(adminController.isInitializingdPrinter ? 'Connecting...' : 'Connect'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              if (adminController.printerConnectionType == 'usb') ...[
+                // USB connection
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppTheme.statusBackgroundColor('info'),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Connect your Brother printer via USB cable',
+                        style: TextStyle(fontSize: 13, color: AppTheme.slate700),
+                      ),
+                      const SizedBox(height: 12),
+                      SearchableDropdownField<brother.Model>(
+                        value: adminController.selectedPrinterModel,
+                        items: AdminDashboardController.supportedPrinterModels,
+                        onChanged: adminController.isInitializingdPrinter
+                            ? (_) {} // Disabled: do nothing
+                            : (model) => adminController.selectPrinterModel(model),
+                        dialogTitle: 'Select Printer Model',
+                        dialogIcon: Icons.print,
+                        placeholder: 'Select printer model',
+                        icon: Icons.print,
+                        searchHint: 'Search by model name...',
+                        emptyMessage: 'No printer models found',
+                        emptyHint: 'Try adjusting your search',
+                        itemName: (model) => model.getName(),
+                        itemId: (model) => model.getName(),
+                        searchMatcher: (model, query) {
+                          final modelName = model.getName().toLowerCase();
+                          final searchQuery = query.toLowerCase();
+                          // Exact match or starts with query
+                          if (modelName == searchQuery || modelName.startsWith(searchQuery)) {
+                            return true;
+                          }
+                          // Match individual words/parts
+                          final parts = searchQuery.split(RegExp(r'[\s\-_]'));
+                          return parts.every((part) =>
+                            modelName.split(RegExp(r'[\s\-_]')).any((word) =>
+                              word.toLowerCase().startsWith(part)
+                            )
+                          );
+                        },
+                        showClearButton: false,
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.warningColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: AppTheme.warningColor.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: AppTheme.warningColor,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Make sure the USB cable is connected',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.slate700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      FilledButton.icon(
+                        onPressed: (adminController.selectedPrinterModel == null || adminController.isInitializingdPrinter)
+                            ? null
+                            : adminController.connectToThePrint,
+                        icon: adminController.isInitializingdPrinter
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : const Icon(Icons.usb, size: 18),
+                        label: Text(adminController.isInitializingdPrinter ? 'Connecting...' : 'Connect'),
                       ),
                     ],
                   ),
@@ -231,7 +358,7 @@ class PrintStatusCard extends StatelessWidget {
               ],
               const SizedBox(height: 12),
               //all warning--------------------------------------------------------------------------
-              if(adminController.isInitializedPrinter) ... [
+              if(!adminController.isInitializedPrinter && adminController.hasAttemptedConnection) ... [
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(14),
@@ -244,6 +371,7 @@ class PrintStatusCard extends StatelessWidget {
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
                         children: [

@@ -28,87 +28,102 @@ class NewSiteMain extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          clipBehavior: Clip.none,
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha:  0.05),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ]
-          ),
-          child: Center(
-            child: logoBuilder(48,newSiteControllder.topLogo!)
-          ),
-        ),
-
-        //Search bar on top
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: SearchField(
-            controller:newSiteControllder.searchCtrl,
-            onChanged: newSiteControllder.updateSearch,
-          ),
-        ),
-
-        //site count
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    return CustomScrollView(
+      slivers: [
+        // Logo Header
+        SliverToBoxAdapter(
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            clipBehavior: Clip.none,
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(8),
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ]
             ),
-            child: Text(
-              newSiteControllder.searchQuery.isEmpty
-                  ? 'Total Sites: ${newSiteControllder.allSites.length}'
-                  : 'Showing ${newSiteControllder.filtered.length} of ${newSiteControllder.allSites.length} sites',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+            child: Center(
+              child: logoBuilder(48, newSiteControllder.topLogo!)
+            ),
+          ),
+        ),
+
+        // Search bar on top
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: SearchField(
+              controller: newSiteControllder.searchCtrl,
+              onChanged: newSiteControllder.updateSearch,
+            ),
+          ),
+        ),
+
+        // Site count
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                newSiteControllder.searchQuery.isEmpty
+                    ? 'Total Sites: ${newSiteControllder.allSites.length}'
+                    : 'Showing ${newSiteControllder.filtered.length} of ${newSiteControllder.allSites.length} sites',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
         ),
 
-        // Search Chips 
+        // Search Chips
         if (newSiteControllder.searchQuery.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Chip(
-              label: Text(
-                'Search: ${newSiteControllder.searchQuery}',
-                overflow: TextOverflow.ellipsis,
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Chip(
+                label: Text(
+                  'Search: ${newSiteControllder.searchQuery}',
+                  overflow: TextOverflow.ellipsis,
+                ),
+                onDeleted: newSiteControllder.clearSearch,
               ),
-              onDeleted: newSiteControllder.clearSearch,
             ),
           ),
 
-        //Site List
-        Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
-            itemCount: newSiteControllder.filtered.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 8),
-            itemBuilder: (_, i) {
-              final site = newSiteControllder.filtered[i];
-              return SiteCard(
-                site: site,
-                onTap: () => confirmSiteSelection(context,site),
-              );
-            },
+        // Site List
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
           ),
-        )
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final site = newSiteControllder.filtered[index];
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: index < newSiteControllder.filtered.length - 1 ? 8 : 0,
+                  ),
+                  child: SiteCard(
+                    site: site,
+                    onTap: () => confirmSiteSelection(context, site),
+                  ),
+                );
+              },
+              childCount: newSiteControllder.filtered.length,
+            ),
+          ),
+        ),
       ],
     );
   }

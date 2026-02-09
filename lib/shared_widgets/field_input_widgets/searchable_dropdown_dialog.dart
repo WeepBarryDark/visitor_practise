@@ -110,21 +110,24 @@ class _SearchableDropdownDialogState<T>
     }).toList();
 
     // Get screen size for responsive design
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final mq = MediaQuery.of(context);
+    final screenWidth = mq.size.width;
+    final screenHeight = mq.size.height;
     final isSmallScreen = AppBreakpoints.isSmallScreen(screenWidth);
     final dialogMaxWidth = AppBreakpoints.getDialogMaxWidth(screenWidth);
-    final dialogHeight = AppBreakpoints.getDialogHeight(screenHeight);
+
+    final availableHeight = screenHeight - mq.viewInsets.bottom - 24;
+    final dialogMaxHeight = availableHeight.clamp(200.0, screenHeight * 0.9);
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: dialogHeight,
           maxWidth: dialogMaxWidth,
+          maxHeight: dialogMaxHeight,
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.max,
           children: [
             // Header
             _buildHeader(isSmallScreen),
@@ -140,7 +143,7 @@ class _SearchableDropdownDialogState<T>
             // Item list
             Flexible(
               child: filteredItems.isEmpty
-                  ? _buildEmptyState(isSmallScreen, dialogHeight)
+                  ? _buildEmptyState(isSmallScreen, dialogMaxHeight)
                   : _buildItemList(filteredItems, isSmallScreen),
             ),
 
@@ -240,43 +243,40 @@ class _SearchableDropdownDialogState<T>
   }
 
   Widget _buildEmptyState(bool isSmallScreen, double dialogHeight) {
-    return Container(
-      constraints: BoxConstraints(
-        minHeight: isSmallScreen ? 150 : 200,
-        maxHeight: dialogHeight * 0.5,
-      ),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.search_off,
-                size: isSmallScreen ? 48 : 64,
-                color: AppTheme.slate400,
+    return SingleChildScrollView(
+      child: Container(
+        constraints: BoxConstraints(
+          minHeight: isSmallScreen ? 150 : 200,
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: isSmallScreen ? 48 : 64,
+              color: AppTheme.slate400,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              widget.emptyMessage,
+              style: TextStyle(
+                color: AppTheme.slate700,
+                fontSize: isSmallScreen ? 14 : 16,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 16),
-              Text(
-                widget.emptyMessage,
-                style: TextStyle(
-                  color: AppTheme.slate700,
-                  fontSize: isSmallScreen ? 14 : 16,
-                  fontWeight: FontWeight.w600,
-                ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              widget.emptyHint,
+              style: TextStyle(
+                color: AppTheme.slate600,
+                fontSize: isSmallScreen ? 12 : 14,
               ),
-              const SizedBox(height: 8),
-              Text(
-                widget.emptyHint,
-                style: TextStyle(
-                  color: AppTheme.slate600,
-                  fontSize: isSmallScreen ? 12 : 14,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );
@@ -534,6 +534,7 @@ class SearchableDropdownField<T> extends StatelessWidget {
                   child: value != null
                       ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               itemName(value as T),
@@ -542,6 +543,8 @@ class SearchableDropdownField<T> extends StatelessWidget {
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                             if (itemSubtitle != null &&
                                 (itemSubtitle!(value as T)?.isNotEmpty ?? false))
@@ -551,6 +554,8 @@ class SearchableDropdownField<T> extends StatelessWidget {
                                   color: AppTheme.slate600,
                                   fontSize: 12,
                                 ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                               ),
                           ],
                         )

@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui' as ui;
 
 import 'package:another_brother/printer_info.dart' as brother;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:uuid/uuid.dart';
 import 'package:visitor_practise/core/constants/app_routes.dart';
 import 'package:visitor_practise/core/models/badge_generator.dart';
 import 'package:visitor_practise/core/models/logos_background.dart';
+import 'package:visitor_practise/core/models/printer_discover.dart';
 import 'package:visitor_practise/core/models/printer_paper_type.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
 import 'package:visitor_practise/services/api_service.dart';
@@ -15,6 +18,7 @@ import 'package:visitor_practise/services/helper/device_permission.dart';
 import 'package:visitor_practise/services/helper/name_beautifier.dart';
 import 'package:visitor_practise/services/model_service/badge_generator_service.dart';
 import 'package:visitor_practise/services/model_service/logos_background_service.dart';
+import 'package:visitor_practise/services/model_service/printer_discover_service.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 
 enum PrinterStatus { notConnect, startConnect, failedConnect}
@@ -37,7 +41,7 @@ class AdminDashboardController extends ChangeNotifier {
   bool _wasOnKiosk = false;
   bool get wasOnKiosk => _wasOnKiosk;
 
-  bool _isInitializingPrinter = true;
+  bool _isInitializingPrinter = false;
   bool get isInitializingdPrinter => _isInitializingPrinter;
 
   bool _isInitializedPrinter = false;
@@ -60,21 +64,25 @@ class AdminDashboardController extends ChangeNotifier {
   String? printerIpError;
 
   String printerName = 'Not connected';
-  String printerIp = 'N/A';
+  String printerIp = 'Click Connect to setup printer';
   bool hasAttemptedConnection = false;
 
   final String _platformName = 'ios'; //android windows 
   String get platformName => _platformName;
 
 
-  // Paper label loading 
-  bool _isLoadingPaperType = true;
+  // Connected printer
+  PrinterDiscover? _connectedPrinter;
+  PrinterDiscover? get connectedPrinter => _connectedPrinter;
+
+  // Paper label loading
+  bool _isLoadingPaperType = false;
   bool get isLoadingPaperType => _isLoadingPaperType;
 
-  bool _isPrinting = true;
+  bool _isPrinting = false;
   bool get isPrinting => _isPrinting;
-  
-  bool _hasTestPrinted = true;
+
+  bool _hasTestPrinted = false;
   bool get hasTestPrinted => _hasTestPrinted;
   
   //Site Information
@@ -157,9 +165,7 @@ class AdminDashboardController extends ChangeNotifier {
     if (v == null) return;
     reqPrint = v;
     notifyListeners();
-    if (v && context != null) {
-      initializePrinter(context);
-    }
+    // Don't auto-initialize - user must click Connect button
   }
   //Notification Setting-----------------------------------------------------
   bool notifyDeliverySms = false;
@@ -278,13 +284,11 @@ class AdminDashboardController extends ChangeNotifier {
       }
       adminPinCtrl.text = adminPin;
       await _loadVisitorRequirements();
+      await _loadSavedPrinterAndPaperType();
       _isCheckingInitialDashboard = false;
       notifyListeners();
 
-      // Auto-initialize printer if enabled
-      if (reqPrint && context != null && context.mounted) {
-        initializePrinter(context);
-      }
+      // Don't auto-initialize printer - user must click Connect button
   }
 
   Future<bool> checkExistingAuth() async {
@@ -354,11 +358,18 @@ class AdminDashboardController extends ChangeNotifier {
 
 //------------------------------------------print section
 
-//Print Information Card - All Brother printer models from another_brother package
+//Print Information Card - Only support QL, PT, TD, RJ series Brother printers
 static List<brother.Model> get supportedPrinterModels {
-  // Filter out UNSUPPORTED model
   return brother.Model.getValues()
-      .where((m) => m.getName() != 'UNSUPPORTED')
+      .where((m) {
+        final name = m.getName().toUpperCase();
+        // Only include QL, PT, TD, RJ series, exclude UNSUPPORTED
+        return (name.startsWith('QL-') ||
+                name.startsWith('PT-') ||
+                name.startsWith('TD-') ||
+                name.startsWith('RJ-')) &&
+               name != 'UNSUPPORTED';
+      })
       .toList();
 }
 
@@ -440,14 +451,377 @@ Future<void> initializePrinter(BuildContext context) async {
   }
 }
 
-void startTestPrint() {
-  return;
+Future<void> connectToThePrint() async {
+  // Clear paper type selection when reconnecting
+  _selectedPaperType = null;
+  _hasTestPrinted = false;
+  await SecureStorageService.clearPaperType();
+  debugPrint('🗑️ Cleared paper type - reconnecting to printer');
+
+  if (_printerConnectionType == 'model') {
+    // Connect by model - discover printers on network
+    final model = _selectedPrinterModel;
+
+    if (model == null) {
+      printerName = 'No model selected';
+      printerIp = 'Please select a printer model';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      _isInitializingPrinter = true;
+      printerName = 'Searching for printers...';
+      printerIp = 'Scanning network...';
+      _isInitializedPrinter = false;
+      notifyListeners();
+
+      // Discover printers using the selected model
+      final printers = await PrinterDiscoverService.getNetPrinters(model);
+
+      if (printers.isEmpty) {
+        printerName = 'No printers found';
+        printerIp = 'No ${model.getName()} printers on network';
+        _isInitializedPrinter = false;
+        _connectedPrinter = null;
+      } else {
+        // Use the first discovered printer
+        final printer = printers.first;
+        _connectedPrinter = printer;
+        printerName = printer.printerName;
+        printerIp = printer.printerAddress;
+        _isInitializedPrinter = true;
+
+        debugPrint('✅ Connected to printer: $printerName at $printerIp');
+
+        // Auto-load paper types from printer
+        await _loadPaperTypesFromPrinter(printer);
+      }
+    } catch (e) {
+      printerName = 'Connection failed';
+      printerIp = 'Error: $e';
+      _isInitializedPrinter = false;
+      _connectedPrinter = null;
+      debugPrint('❌ Failed to discover printers: $e');
+    } finally {
+      _isInitializingPrinter = false;
+      notifyListeners();
+    }
+  } else if (_printerConnectionType == 'ip') {
+    // Connect by IP address
+    final ipAddress = printerIpCtrl.text.trim();
+    final model = _selectedPrinterModel;
+
+    if (ipAddress.isEmpty) {
+      printerIpError = 'Please enter an IP address';
+      notifyListeners();
+      return;
+    }
+
+    if (model == null) {
+      printerIpError = 'Please select a printer model';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      _isInitializingPrinter = true;
+      _isAddingManualPrinter = true;
+      printerName = 'Connecting to printer...';
+      printerIp = 'Connecting to $ipAddress...';
+      printerIpError = null;
+      _isInitializedPrinter = false;
+      notifyListeners();
+
+      // Connect to printer by IP
+      final printer = await PrinterDiscoverService.connectByIp(
+        ipAddress: ipAddress,
+        model: model,
+      );
+
+      if (printer != null) {
+        _connectedPrinter = printer;
+        printerName = printer.printerName;
+        printerIp = printer.printerAddress;
+        _isInitializedPrinter = true;
+        printerIpError = null;
+
+        debugPrint('✅ Connected to printer: $printerName at $printerIp');
+
+        // Auto-load paper types from printer
+        await _loadPaperTypesFromPrinter(printer);
+      } else {
+        printerName = 'Connection failed';
+        printerIp = 'Could not connect to $ipAddress';
+        printerIpError = 'Invalid IP or printer not reachable';
+        _isInitializedPrinter = false;
+        _connectedPrinter = null;
+      }
+    } catch (e) {
+      printerName = 'Connection failed';
+      printerIp = 'Error: $e';
+      printerIpError = e.toString();
+      _isInitializedPrinter = false;
+      _connectedPrinter = null;
+      debugPrint('❌ Failed to connect by IP: $e');
+    } finally {
+      _isInitializingPrinter = false;
+      _isAddingManualPrinter = false;
+      notifyListeners();
+    }
+  } else if (_printerConnectionType == 'usb') {
+    // Connect by USB
+    final model = _selectedPrinterModel;
+
+    if (model == null) {
+      printerName = 'No model selected';
+      printerIp = 'Please select a printer model';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      _isInitializingPrinter = true;
+      printerName = 'Connecting to USB printer...';
+      printerIp = 'Establishing USB connection...';
+      _isInitializedPrinter = false;
+      notifyListeners();
+
+      // Connect to printer by USB
+      final printer = await PrinterDiscoverService.connectByUsb(
+        model: model,
+      );
+
+      if (printer != null) {
+        _connectedPrinter = printer;
+        printerName = printer.printerName;
+        printerIp = 'USB Connected';
+        _isInitializedPrinter = true;
+
+        debugPrint('✅ Connected to printer via USB: $printerName');
+
+        // Auto-load paper types from printer
+        await _loadPaperTypesFromPrinter(printer);
+      } else {
+        printerName = 'Connection failed';
+        printerIp = 'Could not connect via USB';
+        _isInitializedPrinter = false;
+        _connectedPrinter = null;
+      }
+    } catch (e) {
+      printerName = 'Connection failed';
+      printerIp = 'Error: $e';
+      _isInitializedPrinter = false;
+      _connectedPrinter = null;
+      debugPrint('❌ Failed to connect by USB: $e');
+    } finally {
+      _isInitializingPrinter = false;
+      notifyListeners();
+    }
+  }
+
+  hasAttemptedConnection = true;
 }
 
-void selectThePaperType(String? v)
-{
+/// Auto-load paper types from printer using getLabelInfo
+Future<void> _loadPaperTypesFromPrinter(PrinterDiscover printerDiscover) async {
+  try {
+    _isLoadingPaperType = true;
+    notifyListeners();
+
+    debugPrint('📄 Loading paper types for model: ${printerDiscover.printerModel}');
+
+    // First, always load available paper types based on model
+    availablePaperTypes = PrinterPaperType.getPrinterPaperTypesForModel(
+      printerDiscover.printerModel,
+    );
+
+    debugPrint('📋 Found ${availablePaperTypes.length} paper types for ${printerDiscover.printerModel}');
+
+    // Try to get label info from printer to auto-select current paper
+    final printerInfo = printerDiscover.printerInfo;
+    if (printerInfo != null) {
+      try {
+        final printer = brother.Printer();
+        await printer.setPrinterInfo(printerInfo);
+        final labelInfo = await printer.getLabelInfo();
+
+        debugPrint('📋 Label Info from printer:');
+        debugPrint('  - labelNameIndex: ${labelInfo.labelNameIndex}');
+        debugPrint('  - labelColor: ${labelInfo.labelColor}');
+        debugPrint('  - isSpecialTape: ${labelInfo.isSpecialTape}');
+
+        // Try to get printer status (might contain paper info)
+        try {
+          final printerStatus = await printer.getPrinterStatus();
+          debugPrint('📋 Printer Status:');
+          debugPrint('  - errorCode: ${printerStatus.errorCode}');
+          debugPrint('  - status: $printerStatus');
+        } catch (statusError) {
+          debugPrint('⚠️ getPrinterStatus failed: $statusError');
+        }
+
+        // NOTE: getLabelParam() causes native Android crash on QL-820NWB
+        // Even with try-catch, the crash happens at native level and cannot be caught
+        // Workaround: Use manual paper type selection
+        debugPrint('⚠️ getLabelParam() is not available - using manual selection');
+
+        // Try to auto-select paper type based on labelNameIndex
+        if (labelInfo.labelNameIndex != null && labelInfo.labelNameIndex! >= 0) {
+          final matchingPaper = PrinterPaperType.fromLabelNameIndex(
+            labelInfo.labelNameIndex!,
+          );
+          if (matchingPaper != null) {
+            _selectedPaperType = matchingPaper.code;
+            debugPrint('✅ Auto-selected paper type: ${matchingPaper.code}');
+          } else {
+            debugPrint('⚠️ No matching paper type found for labelNameIndex: ${labelInfo.labelNameIndex}');
+          }
+        } else {
+          debugPrint('⚠️ Printer cannot detect paper type (labelNameIndex: ${labelInfo.labelNameIndex})');
+          debugPrint('   Please manually select the paper type installed in your printer');
+        }
+      } catch (labelError) {
+        debugPrint('⚠️ Could not get label info from printer: $labelError');
+        debugPrint('   Paper types still loaded from model');
+      }
+    }
+
+    _isLoadingPaperType = false;
+    notifyListeners();
+
+    debugPrint('✅ Paper types ready: ${availablePaperTypes.length} options available');
+  } catch (e, stackTrace) {
+    debugPrint('❌ Failed to load paper types: $e');
+    debugPrint('Stack trace: $stackTrace');
+
+    // Last resort fallback
+    availablePaperTypes = PrinterPaperType.getPrinterPaperTypesForModel(
+      printerDiscover.printerModel,
+    );
+
+    _isLoadingPaperType = false;
+    notifyListeners();
+
+    debugPrint('⚠️ Loaded ${availablePaperTypes.length} paper types as fallback');
+  }
+}
+
+Future<void> startTestPrint() async {
+  if (!_isInitializedPrinter || _connectedPrinter == null) {
+    debugPrint('❌ No printer connected');
+    return;
+  }
+
+  if (_selectedPaperType == null) {
+    debugPrint('❌ No paper type selected');
+    return;
+  }
+
+  if (_isPrinting) {
+    debugPrint('⚠️ Already printing');
+    return;
+  }
+
+  try {
+    _isPrinting = true;
+    _hasTestPrinted = false;
+    notifyListeners();
+
+    debugPrint('🖨️ Starting test print...');
+    debugPrint('  Printer: ${_connectedPrinter!.printerName}');
+    debugPrint('  Paper: $_selectedPaperType');
+
+    final printerInfo = _connectedPrinter!.printerInfo;
+    if (printerInfo == null) {
+      throw Exception('Printer info not available');
+    }
+
+    // Find the selected paper type details
+    final paperType = PrinterPaperType.fromCode(_selectedPaperType!);
+    if (paperType == null) {
+      throw Exception('Invalid paper type: $_selectedPaperType');
+    }
+
+    // Set label name index based on paper type
+    printerInfo.labelNameIndex = paperType.labelNameIndex;
+
+    // Generate simple test image
+    final testImage = await _generateTestImage();
+
+    // Print the test image
+    final printer = brother.Printer();
+    await printer.setPrinterInfo(printerInfo);
+
+    final printResult = await printer.printImage(testImage);
+
+    if (printResult.errorCode == brother.ErrorCode.ERROR_NONE) {
+      debugPrint('✅ Test print completed successfully');
+      _hasTestPrinted = true;
+
+      // Save paper type to local storage on successful print
+      if (paperType != null) {
+        await SecureStorageService.savePaperType(paperType.toJson());
+        debugPrint('💾 Paper type saved: ${paperType.code}');
+      }
+    } else {
+      debugPrint('⚠️ Print completed with warning: ${printResult.errorCode}');
+      _hasTestPrinted = true;
+    }
+  } catch (e, stackTrace) {
+    debugPrint('❌ Test print failed: $e');
+    debugPrint('Stack trace: $stackTrace');
+    _hasTestPrinted = false;
+  } finally {
+    _isPrinting = false;
+    notifyListeners();
+  }
+}
+
+void selectThePaperType(String? v) {
   _selectedPaperType = v;
+  // Reset test print flag when paper type changes
+  _hasTestPrinted = false;
   notifyListeners();
+}
+
+/// Generate simple test image with text
+Future<ui.Image> _generateTestImage() async {
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, 400, 200));
+
+  // White background
+  canvas.drawRect(
+    const Rect.fromLTWH(0, 0, 400, 200),
+    Paint()..color = Colors.white,
+  );
+
+  // Draw text "print tested"
+  final textPainter = TextPainter(
+    text: const TextSpan(
+      text: 'print tested',
+      style: TextStyle(
+        color: Colors.black,
+        fontSize: 32,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  );
+
+  textPainter.layout();
+  textPainter.paint(
+    canvas,
+    Offset(
+      (400 - textPainter.width) / 2,
+      (200 - textPainter.height) / 2,
+    ),
+  );
+
+  final picture = recorder.endRecording();
+  final image = await picture.toImage(400, 200);
+
+  return image;
 }
 
 //--------------------------------------------------------required visitor information field section
@@ -501,6 +875,68 @@ void selectThePaperType(String? v)
       'enable_visitor_retrieve_badge' : enableVisitorRetrieveBadge,
     };
     await SecureStorageService.saveAdminDashboardSettings(jsonEncode(requirements));
+  }
+
+  /// Load saved printer and paper type from local storage
+  Future<void> _loadSavedPrinterAndPaperType() async {
+    try {
+      // Load saved printer
+      final printerData = await SecureStorageService.getLastPrinter();
+      if (printerData != null) {
+        final savedName = printerData['name'] as String? ?? 'Unknown';
+        final savedAddress = printerData['address'] as String? ?? 'N/A';
+        final savedModel = printerData['model'] as String? ?? '';
+
+        // Set printer info
+        printerName = savedName;
+        printerIp = savedAddress;
+
+        // Find the model
+        final model = brother.Model.getValues().firstWhere(
+          (m) => m.getName() == savedModel,
+          orElse: () => brother.Model.UNSUPPORTED,
+        );
+
+        if (model != brother.Model.UNSUPPORTED) {
+          _selectedPrinterModel = model;
+
+          // Create printer info
+          final printerInfo = brother.PrinterInfo()
+            ..printerModel = model
+            ..port = savedAddress == 'USB' ? brother.Port.USB : brother.Port.NET
+            ..ipAddress = savedAddress != 'USB' ? savedAddress : '';
+
+          // Create PrinterDiscover object
+          _connectedPrinter = PrinterDiscover(
+            printerName: savedName,
+            printerAddress: savedAddress,
+            printerModel: savedModel,
+            printerInfo: printerInfo,
+          );
+
+          // Load available paper types for this model
+          availablePaperTypes = PrinterPaperType.getPrinterPaperTypesForModel(savedModel);
+
+          // Mark as initialized (connected)
+          _isInitializedPrinter = true;
+          hasAttemptedConnection = true;
+
+          debugPrint('📂 Loaded saved printer: $savedName at $savedAddress');
+          debugPrint('📋 Available paper types: ${availablePaperTypes.length}');
+        }
+      }
+
+      // Load saved paper type
+      final paperTypeData = await SecureStorageService.getPaperType();
+      if (paperTypeData != null) {
+        final paperType = PrinterPaperType.fromJson(paperTypeData);
+        _selectedPaperType = paperType.code;
+        debugPrint('📂 Loaded saved paper type: ${paperType.code}');
+        debugPrint('✅ Ready to print - all settings restored!');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Failed to load saved printer/paper type: $e');
+    }
   }
 
   Future<void> generatePreview() async {

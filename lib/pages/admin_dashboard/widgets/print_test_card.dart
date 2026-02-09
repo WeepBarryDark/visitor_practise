@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:visitor_practise/core/models/printer_paper_type.dart';
 import 'package:visitor_practise/core/theme/app_theme.dart';
 import 'package:visitor_practise/pages/admin_dashboard/controllers/admin_dashboard_controller.dart';
+import 'package:visitor_practise/shared_widgets/field_input_widgets/searchable_dropdown_dialog.dart';
 
 class PrintTestCard extends StatelessWidget {
   const PrintTestCard(this.adminController, {super.key});
@@ -13,7 +15,7 @@ class PrintTestCard extends StatelessWidget {
     return Column(
       children: [
         // Only show when printer is connected
-        if (!adminController.isInitializedPrinter) ... [
+        if (adminController.isInitializedPrinter) ... [
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(14),
@@ -54,7 +56,7 @@ class PrintTestCard extends StatelessWidget {
                   // Header -----------------------------------------end
                   const SizedBox(height: 8),
                   // Printer Model infor--------------------------------
-                  if(adminController.printerModel.isNotEmpty) ... [
+                  if(adminController.printerName.isNotEmpty && adminController.printerName != 'Not connected') ... [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -69,9 +71,13 @@ class PrintTestCard extends StatelessWidget {
                         children: [
                           Icon(Icons.print, size: 14, color: AppTheme.primaryBlue),
                           const SizedBox(width: 6),
-                          Text(
-                            'Model: ${adminController.printerModel}',
-                            style: TextStyle(fontSize: 11,fontWeight: FontWeight.w600,color: AppTheme.primaryBlue,),
+                          Flexible(
+                            child: Text(
+                              'Model: ${adminController.printerName}',
+                              style: TextStyle(fontSize: 11,fontWeight: FontWeight.w600,color: AppTheme.primaryBlue,),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
                           ),
                           const SizedBox(width: 8),
                           Container(
@@ -81,8 +87,7 @@ class PrintTestCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(3),
                             ),
                             child: Text(
-                              //'${c.availablePaperTypes.length} options',
-                              'Paper Length Options',
+                              '${adminController.availablePaperTypes.length} options',
                               style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white,),
                             ),
                           ),
@@ -98,7 +103,7 @@ class PrintTestCard extends StatelessWidget {
                     style: TextStyle(fontSize: 12, color: AppTheme.slate600),
                   ),
                   const SizedBox(height: 12),
-                  if (!adminController.isLoadingPaperType)
+                  if (adminController.isLoadingPaperType)
                     // Loading Icon
                     const Center(
                       child: Padding(
@@ -106,7 +111,7 @@ class PrintTestCard extends StatelessWidget {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                     )
-                  else if (!adminController.availablePaperTypes.isEmpty)
+                  else if (adminController.availablePaperTypes.isEmpty)
                     // No paper types available
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -128,24 +133,32 @@ class PrintTestCard extends StatelessWidget {
                       ),
                     )
                   else
-                    //dropdown box
-                    DropdownButtonFormField<String>(
-                      initialValue: adminController.selectedPaperType,
-                      decoration: InputDecoration(
-                        labelText: 'Select Paper Type',
-                        border: const OutlineInputBorder(),
-                        prefixIcon: const Icon(Icons.print),
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                        filled: true,
-                        fillColor: Colors.white,
-                        errorText: adminController.selectedPaperType == null ? 'Please select a paper type' : null,
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'A', child: Text('Apple')),
-                        DropdownMenuItem(value: 'B', child: Text('Banana')),
-                      ], 
-                      onChanged: adminController.selectThePaperType
+                    //searchable dropdown
+                    SearchableDropdownField<PrinterPaperType>(
+                      value: adminController.selectedPaperType != null
+                          ? adminController.availablePaperTypes.firstWhere(
+                              (p) => p.code == adminController.selectedPaperType,
+                              orElse: () => adminController.availablePaperTypes.first,
+                            )
+                          : null,
+                      items: adminController.availablePaperTypes,
+                      onChanged: (paperType) => adminController.selectThePaperType(paperType?.code),
+                      dialogTitle: 'Select Paper Type',
+                      dialogIcon: Icons.description,
+                      placeholder: 'Select paper type',
+                      icon: Icons.description,
+                      searchHint: 'Search by paper code or description...',
+                      emptyMessage: 'No paper types found',
+                      emptyHint: 'Try adjusting your search',
+                      itemName: (paperType) => paperType.fullDisplayName,
+                      itemId: (paperType) => paperType.code,
+                      searchMatcher: (paperType, query) {
+                        final searchLower = query.toLowerCase();
+                        return paperType.code.toLowerCase().contains(searchLower) ||
+                               paperType.description.toLowerCase().contains(searchLower) ||
+                               paperType.width.toLowerCase().contains(searchLower);
+                      },
+                      showClearButton: false,
                     ),
                     // Select label paper section ---------------------end
                     const SizedBox(height: 8),
@@ -227,7 +240,7 @@ class PrintTestCard extends StatelessWidget {
                     //show hint - you can only run test once per paper-end
                     const SizedBox(height: 8),
                     //Current selected Paper Type-------------------------
-                    if (adminController.selectedPaperType == null) ...[
+                    if (adminController.selectedPaperType != null) ...[
                       const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.all(10),
@@ -241,17 +254,18 @@ class PrintTestCard extends StatelessWidget {
                         child: Row(
                           children: [
                             Icon(
-                              Icons.info_outline,
+                              Icons.check_circle_outline,
                               size: 16,
-                              color: AppTheme.slate600,
+                              color: AppTheme.successColor,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'Current: printer paper type here',
+                                'Current: ${adminController.selectedPaperType}',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: AppTheme.slate700,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),

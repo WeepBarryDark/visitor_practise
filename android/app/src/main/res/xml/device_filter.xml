@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brother Printer USB Device Filter -->
+    <!-- Brother Industries vendor ID: 0x04f9 -->
+    <usb-device vendor-id="1273" />
+
+    <!-- Brother QL-820NWB -->
+    <usb-device vendor-id="1273" product-id="8258" />
+
+    <!-- Brother QL-720NW -->
+    <usb-device vendor-id="1273" product-id="8226" />
+
+    <!-- You can add more Brother printer models here -->
+    <!-- Format: vendor-id="1273" (decimal for 0x04f9) product-id="XXXX" -->
+</resources>
