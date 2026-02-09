@@ -7,6 +7,7 @@ import 'package:visitor_practise/core/constants/app_routes.dart';
 import 'package:visitor_practise/core/models/logos_background.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
 import 'package:visitor_practise/services/api_service.dart';
+import 'package:visitor_practise/services/model_service/logos_background_service.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 
 class NewSiterControllder extends ChangeNotifier {
@@ -59,11 +60,11 @@ class NewSiterControllder extends ChangeNotifier {
         throw Exception('No client essential data collected');
       }
 
-      final logoBackgroundModel = await LogosBackground.create(customTopLogUrl: clientLogo, customBackground: clientBackgroundImage);
-      await logoBackgroundModel.saveTolocal();
+      final logoService = LogosBackgroundService();
+      await logoService.create(customTopLogUrl: clientLogo, customBackground: clientBackgroundImage);
 
       topLogo = await SecureStorageService.getClientTopLogoBytes();
-      bottomLogo = await SecureStorageService.getClientTopLogoBytes();
+      bottomLogo = await SecureStorageService.getClientBottomLogoBytes();
       background = await SecureStorageService.getClientBackgroundBytes();
 
       //everytime refetch sites

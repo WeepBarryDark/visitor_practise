@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:visitor_practise/core/models/paper_type.dart';
 import 'package:visitor_practise/core/theme/app_theme.dart';
 import 'package:visitor_practise/pages/admin_dashboard/controllers/admin_dashboard_controller.dart';
 
@@ -14,7 +13,7 @@ class PrintTestCard extends StatelessWidget {
     return Column(
       children: [
         // Only show when printer is connected
-        if (adminController.isInitializedPrinter) ... [
+        if (!adminController.isInitializedPrinter) ... [
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(14),

@@ -1,22 +1,26 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:another_brother/printer_info.dart' as brother;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 import 'package:visitor_practise/core/constants/app_routes.dart';
-import 'package:visitor_practise/core/constants/server_link.dart';
 import 'package:visitor_practise/core/models/badge_generator.dart';
 import 'package:visitor_practise/core/models/logos_background.dart';
-import 'package:visitor_practise/core/models/paper_type.dart';
+import 'package:visitor_practise/core/models/printer_paper_type.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
 import 'package:visitor_practise/services/api_service.dart';
 import 'package:visitor_practise/services/helper/device_permission.dart';
-import 'package:visitor_practise/services/helper/name_beatutifier.dart';
+import 'package:visitor_practise/services/helper/name_beautifier.dart';
+import 'package:visitor_practise/services/model_service/badge_generator_service.dart';
+import 'package:visitor_practise/services/model_service/logos_background_service.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 
+enum PrinterStatus { notConnect, startConnect, failedConnect}
+
 class AdminDashboardController extends ChangeNotifier {
+  
   //Background and Logo------------------------------------
   Uint8List? topLogo;
   Uint8List? bottomLogo;
@@ -33,20 +37,35 @@ class AdminDashboardController extends ChangeNotifier {
   bool _wasOnKiosk = false;
   bool get wasOnKiosk => _wasOnKiosk;
 
-  bool _isInitializingPrinter = false;
+  bool _isInitializingPrinter = true;
   bool get isInitializingdPrinter => _isInitializingPrinter;
 
-  bool _isInitializedPrinter = true;
+  bool _isInitializedPrinter = false;
   bool get isInitializedPrinter => _isInitializedPrinter;
 
-  bool _showManualInput = true;
-  bool get showManualInput => _showManualInput;
+  // Printer connection type: 'model' or 'ip'
+  String _printerConnectionType = 'model';
+  String get printerConnectionType => _printerConnectionType;
 
-  bool _isAddingManualPrinter = true;
+  void setPrinterConnectionType(String type) {
+    _printerConnectionType = type;
+    notifyListeners();
+  }
+
+  bool _isAddingManualPrinter = false;
   bool get isAddingManualPrinter => _isAddingManualPrinter;
 
-  bool _printModelConnect = true;
-  bool get printModelConnect => _printModelConnect;
+  // IP address for manual connection
+  final TextEditingController printerIpCtrl = TextEditingController();
+  String? printerIpError;
+
+  String printerName = 'Not connected';
+  String printerIp = 'N/A';
+  bool hasAttemptedConnection = false;
+
+  final String _platformName = 'ios'; //android windows 
+  String get platformName => _platformName;
+
 
   // Paper label loading 
   bool _isLoadingPaperType = true;
@@ -75,11 +94,9 @@ class AdminDashboardController extends ChangeNotifier {
   //-------------------------------------------------print require information
 
   // BuildContext for permission dialogs (set from dashboard page)
-  late final Future<dynamic> Function() _getContext;
 
-  //Print Information Card
   String printerModel = 'test printer';
-  List<PaperType> availablePaperTypes = [];
+  List<PrinterPaperType> availablePaperTypes = [];
 
   String? _selectedPaperType;
   String? get selectedPaperType => _selectedPaperType;
@@ -136,12 +153,13 @@ class AdminDashboardController extends ChangeNotifier {
   }
   //print required---------------------------------------------------------------
   bool reqPrint = true;//enable print
-  void setReqPrint(bool? v) { // ----set function
+  void setReqPrint(bool? v, {BuildContext? context}) { // ----set function
     if (v == null) return;
     reqPrint = v;
     notifyListeners();
-    if (v) initializePrinter();
-
+    if (v && context != null) {
+      initializePrinter(context);
+    }
   }
   //Notification Setting-----------------------------------------------------
   bool notifyDeliverySms = false;
@@ -175,7 +193,7 @@ class AdminDashboardController extends ChangeNotifier {
   bool enableVisitorDelivery = false;
   bool enableContractorSignIn = false;
   bool enableVisitorRetrieveBadge = false;
-  
+
   void setEnableVisitorDelivery(bool? v) {
     if (v == null) return;
     enableVisitorDelivery = v;
@@ -194,8 +212,8 @@ class AdminDashboardController extends ChangeNotifier {
   // initialization-----------------------------------------------
   Future<void> initialise ({
     required Future<void> Function(String nextRoute) onAlreadyRedirect,
+    BuildContext? context,
   }) async {
-
       final savedToken = await  SecureStorageService.getAuthToken().timeout(const Duration(seconds: 5));
       if (savedToken == null || savedToken.isEmpty) {
          throw Exception('No token');
@@ -235,13 +253,12 @@ class AdminDashboardController extends ChangeNotifier {
       }
       //for welcome headeer
       clientDisplayName = clientTradingName;
-
-      final logoBackgroundModel = await LogosBackground.create(customTopLogUrl: clientLogo, customBackground: clientBackgroundImage);
-      await logoBackgroundModel.saveTolocal();
+      final logoService = LogosBackgroundService();
+      logoService.create(customTopLogUrl: clientLogo, customBackground: clientBackgroundImage);
 
       // Load client logo bytes from SecureStorage or use default
       topLogo = await SecureStorageService.getClientTopLogoBytes();
-      bottomLogo = await SecureStorageService.getClientTopLogoBytes();
+      bottomLogo = await SecureStorageService.getClientBottomLogoBytes();
       background = await SecureStorageService.getClientBackgroundBytes();
 
       //everytime refetch sites
@@ -263,6 +280,11 @@ class AdminDashboardController extends ChangeNotifier {
       await _loadVisitorRequirements();
       _isCheckingInitialDashboard = false;
       notifyListeners();
+
+      // Auto-initialize printer if enabled
+      if (reqPrint && context != null && context.mounted) {
+        initializePrinter(context);
+      }
   }
 
   Future<bool> checkExistingAuth() async {
@@ -331,64 +353,104 @@ class AdminDashboardController extends ChangeNotifier {
   
 
 //------------------------------------------print section
-Future<void> initializePrinter() async {
+
+//Print Information Card - All Brother printer models from another_brother package
+static List<brother.Model> get supportedPrinterModels {
+  // Filter out UNSUPPORTED model
+  return brother.Model.getValues()
+      .where((m) => m.getName() != 'UNSUPPORTED')
+      .toList();
+}
+
+brother.Model? _selectedPrinterModel;
+brother.Model? get selectedPrinterModel => _selectedPrinterModel;
+
+void selectPrinterModel(brother.Model? model) {
+  _selectedPrinterModel = model;
+  // Update available paper types based on selected model
+  if (model != null) {
+    availablePaperTypes = PrinterPaperType.getPrinterPaperTypesForModel(model.getName());
+    // Reset paper type selection if current selection is not compatible
+    if (_selectedPaperType != null) {
+      final isCompatible = availablePaperTypes.any((p) => p.code == _selectedPaperType);
+      if (!isCompatible) {
+        _selectedPaperType = null;
+      }
+    }
+  } else {
+    availablePaperTypes = [];
+    _selectedPaperType = null;
+  }
+  notifyListeners();
+}
+
+
+Future<void> initializePrinter(BuildContext context) async {
   if (_isInitializingPrinter) {
-    debugPrint('Printer already initialized, skipping...');
+    debugPrint('Printer already initializing, skipping...');
     return;
   }
-
   _isInitializingPrinter = true;
   notifyListeners();
-
   try {
-    if (kIsWeb) {
-      // if its web, the toggle can only be false
-      reqPrint = false;
-      notifyListeners();
-    } else {
-      // check permission
-      final context = await _getContext();
+    // Request permissions (with dialogs to guide user)
+    final hasPermission = await DevicePermission.requestPrinterPermissions(context,);
 
-      final hasPermission = await DevicePermission.requestPrinterPermissions(context);
-
-
-    }
-
-
-    // simlation fail
-    _isInitializedPrinter = true; // 或 false 如果失败
-
-    if (!_isInitializedPrinter) {
-      _showManualInput = true; // 失败后显示手动输入
-    }
-
-    } catch (e) {
-      debugPrint('Printer initialization failed: $e');
+    if (!hasPermission) {
+      printerName = 'Permission denied';
+      printerIp = 'Grant permissions to discover printers';
+      hasAttemptedConnection = true;
       _isInitializedPrinter = false;
-      _showManualInput = true;
-    } finally {
-      _isInitializedPrinter = false;
-      notifyListeners();
+      return;
     }
-  }
 
-  void allowPrintBadge(bool v) {
-    //display the password
-     obscureAdminPin = !obscureAdminPin;
-     notifyListeners();
-  }
+    // Check if there's a saved printer to try reconnecting to
+    final savedPrinter = await SecureStorageService.getLastPrinter();
 
-  void startTestPrint() {
-    return;
-  }
-  
-  void selectThePaperType(String? v)
-  {
-    _selectedPaperType = v;
+    if (savedPrinter != null) {
+      // STEP 1: Try to reconnect to saved printer (fast)
+      printerName = 'Reconnecting to printer...';
+      printerIp = 'Checking saved printer';
+      notifyListeners();
+
+      //final reconnected = await BadgePrinter.tryConnectToSavedPrinter();
+    }
+
+    // TODO: Add your printer initialization logic here
+    // For example:
+    // final printers = await discoverPrinters();
+    // if (printers.isNotEmpty) {
+    //   printerName = printers.first.name;
+    //   printerIp = printers.first.ipAddress;
+    //   _isInitializedPrinter = true;
+    // }
+
+    debugPrint('Printer initialization completed');
+    hasAttemptedConnection = true;
+
+  } catch (e) {
+    debugPrint('Printer initialization failed: $e');
+    printerName = 'Initialization failed';
+    printerIp = 'Error: $e';
+    _isInitializedPrinter = false;
+    hasAttemptedConnection = true;
+  } finally {
+    _isInitializingPrinter = false;
     notifyListeners();
   }
+}
 
-//--------------------------------------------------------selection section
+void startTestPrint() {
+  return;
+}
+
+void selectThePaperType(String? v)
+{
+  _selectedPaperType = v;
+  notifyListeners();
+}
+
+//--------------------------------------------------------required visitor information field section
 
   Future<void> _loadVisitorRequirements() async {
     final requirementsJson = await SecureStorageService.getAdminDashboardSettings();
@@ -462,7 +524,7 @@ Future<void> initializePrinter() async {
     );
 
     // Generate the actual image (same one that will be printed)
-    previewImageBytes = await BadgeGenerator.generateBadgeBytes(badgeData);
+    previewImageBytes = await BadgeGeneratorService.generateBadgeBytes(badgeData);
     showPreview = true;
     notifyListeners();
   }
@@ -470,6 +532,13 @@ Future<void> initializePrinter() async {
   //------------------------------------------------------------------confirm and go to Kiosk
   Future<void> confirmToKiosk() async {
      await _saveVisitorRequirements();
+  }
+
+  @override
+  void dispose() {
+    adminPinCtrl.dispose();
+    printerIpCtrl.dispose();
+    super.dispose();
   }
 
 }

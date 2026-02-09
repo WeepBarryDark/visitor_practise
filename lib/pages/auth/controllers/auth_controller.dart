@@ -9,6 +9,7 @@ import 'package:visitor_practise/core/constants/server_link.dart';
 import 'package:visitor_practise/core/models/auth_nav_decision.dart';
 import 'package:visitor_practise/core/models/logos_background.dart';
 import 'package:visitor_practise/services/api_service.dart';
+import 'package:visitor_practise/services/model_service/logos_background_service.dart';
 
 import 'package:visitor_practise/services/secure_storage_service.dart';
 
@@ -40,8 +41,6 @@ class AuthController extends ChangeNotifier {
 
   String _statusMessage = 'Initializing...';
   String get statusMessage => _statusMessage;
-
-
   // ---------------- Bootstrapping ----------------
   //Step 1 
   Future<void> bootstrap({
@@ -237,9 +236,9 @@ class AuthController extends ChangeNotifier {
 
         final logoUrl = clientJson['logo'] as String?;
         final bgUrl = clientJson['background_image'] as String?;
-
-        final logoBackgroundModel = await LogosBackground.create(customTopLogUrl: logoUrl, customBackground: bgUrl);
-        await logoBackgroundModel.saveTolocal();
+        
+        final logoService = LogosBackgroundService();
+        await logoService.create(customTopLogUrl: logoUrl, customBackground: bgUrl);
 
       } catch (e) {
         debugPrint('Failed to fetch/save client logo: $e');

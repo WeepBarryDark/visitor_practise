@@ -38,12 +38,11 @@ class SecureStorageService {
   static const String _keyBackground = 'background';
 
   //Unexpected crash or exit - record last accessed location
-  static const String _keyLastKioskAccess = 'last_access';
+  static const String _keyLastKioskAccess = 'last_last_kiosk_access';
+  static const String _keyLastPrinter = 'last_printer';
+  static const String _keyPrinterPaperType = 'last_printer_paper_typer';
 
-  // ============================================================================
-  // AUTHENTICATION
-  // ============================================================================
-
+  
   /// Save authentication token
   static Future<void> saveAuthToken(String token) async {
     try {
@@ -134,6 +133,86 @@ class SecureStorageService {
       return null;
     }
   }
+  ///------------------------------------------ Last selected site 
+  /// Save last printer page (string)-----------------------------
+  static Future<void> saveLastPrinter({
+    required String name,
+    required String address,
+    required String model,
+  }) async {
+    try {
+      final printerData = jsonEncode({
+        'name': name,
+        'address': address,
+        'model': model,
+        'saved_at': DateTime.now().toIso8601String(),
+      });
+      await _storage.write(key: _keyLastPrinter, value: printerData);
+    } catch (e) {
+      debugPrint('Error saving printer info: $e');
+    }
+  }
+
+  /// Get visitor sites data (JSON string)
+ static Future<Map<String, dynamic>?> getLastPrinter() async {
+    try {
+      final printerJson = await _storage.read(key: _keyLastPrinter);
+      if (printerJson == null || printerJson.isEmpty) {
+        return null;
+      }
+      final printerData = jsonDecode(printerJson) as Map<String, dynamic>;
+      return printerData;
+    } catch (e) {
+      debugPrint('Error reading printer info: $e');
+      return null;
+    }
+  }
+  /// Clear saved paper type
+  static Future<void> clearLastPrinter() async {
+    try {
+      await _storage.delete(key: _keyLastPrinter);
+    } catch (e) {
+      debugPrint('Error clearing paper type: $e');
+    }
+  }
+  /// Save last printer page (string)-----------------------------
+  /// Save last printer paper type (string)-----------------------------
+  static Future<void> savePaperType(Map<String, dynamic> paperTypeMap) async {
+    try {
+      final paperTypeJson = jsonEncode(paperTypeMap);
+      await _storage.write(
+        key: _keyPrinterPaperType,
+        value: paperTypeJson,
+      );
+      debugPrint('Paper type saved: ${paperTypeMap['code']}');
+    } catch (e) {
+      debugPrint('Error saving paper type: $e');
+    }
+  }
+
+  /// Get saved paper type (returns Map)
+  static Future<Map<String, dynamic>?> getPaperType() async {
+    try {
+      final paperTypeJson = await _storage.read(key: _keyPrinterPaperType);
+      if (paperTypeJson != null && paperTypeJson.isNotEmpty) {
+        return jsonDecode(paperTypeJson) as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error reading paper type: $e');
+      return null;
+    }
+  }
+
+  /// Clear saved paper type
+  static Future<void> clearPaperType() async {
+    try {
+      await _storage.delete(key: _keyPrinterPaperType);
+    } catch (e) {
+      debugPrint('Error clearing paper type: $e');
+    }
+  }
+    /// Save last printer paper type (string)-----------------------------
   ///------------------------------------------ Last access 
   /// Save last accessed page (string)
     static Future<void> saveLastKioskAccess(String locationString) async {

@@ -18,15 +18,21 @@ class AdminDashboardPage extends StatefulWidget {
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   late final AdminDashboardController _dashboardController;
+
   @override
   void initState() {
     super.initState();
     _dashboardController = AdminDashboardController();
-    
-    _dashboardController.initialise(
-      onAlreadyRedirect:(nextRoute) async => _handleAutoNavigation(nextRoute),
-    );
-    
+
+    // Wait for first frame to ensure context is available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _dashboardController.initialise(
+          onAlreadyRedirect:(nextRoute) async => _handleAutoNavigation(nextRoute),
+          context: context,
+        );
+      }
+    });
   }
 
   Future<void> _handleAutoNavigation(String nextRoute) async {
@@ -40,6 +46,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       );
       Navigator.of(context).pushReplacementNamed(AppRoutes.auth);
     }
+  }
+
+  @override
+  void dispose() {
+    _dashboardController.dispose();
+    super.dispose();
   }
 
   @override

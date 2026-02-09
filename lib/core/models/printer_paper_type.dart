@@ -1,6 +1,6 @@
 /// Paper Type Model for Brother Label Printers
 /// Defines supported paper sizes for QL-820NWB and QL-720NW
-class PaperType {
+class PrinterPaperType {
   final int labelNameIndex;
   final String code; // DK-22205, DK-22251, etc.
   final String name;
@@ -13,7 +13,7 @@ class PaperType {
   final bool isSpecialTape; // true = Red/Black, false = Black/White
   final List<String> supportedModels; // Which printer models support this paper
 
-  const PaperType({
+  const PrinterPaperType({
     required this.labelNameIndex,
     required this.code,
     required this.name,
@@ -28,9 +28,9 @@ class PaperType {
   });
 
   /// All supported paper types for Brother QL series printers
-  static const List<PaperType> allPaperTypes = [
+  static const List<PrinterPaperType> allPrinterPaperTypes = [
     // DK-22113: 62mm Continuous Clear Film (Both models)
-    PaperType(
+    PrinterPaperType(
       labelNameIndex: 15,
       code: 'DK-22113',
       name: 'DK-22113',
@@ -42,7 +42,7 @@ class PaperType {
     ),
 
     // DK-22205: 62mm Continuous White Paper (Both models)
-    PaperType(
+    PrinterPaperType(
       labelNameIndex: 15,
       code: 'DK-22205',
       name: 'DK-22205',
@@ -54,7 +54,7 @@ class PaperType {
     ),
 
     // DK-22212: 62mm Continuous White Film (Both models)
-    PaperType(
+    PrinterPaperType(
       labelNameIndex: 15,
       code: 'DK-22212',
       name: 'DK-22212',
@@ -66,7 +66,7 @@ class PaperType {
     ),
 
     // DK-22606: 62mm Continuous Yellow Film (Both models)
-    PaperType(
+    PrinterPaperType(
       labelNameIndex: 15,
       code: 'DK-22606',
       name: 'DK-22606',
@@ -78,7 +78,7 @@ class PaperType {
     ),
 
     // DK-44205: 62mm Continuous White Paper (Removable) (Both models)
-    PaperType(
+    PrinterPaperType(
       labelNameIndex: 15,
       code: 'DK-44205',
       name: 'DK-44205',
@@ -91,7 +91,7 @@ class PaperType {
     ),
 
     // DK-44605: 62mm Continuous Yellow Paper (Removable) (Both models)
-    PaperType(
+    PrinterPaperType(
       labelNameIndex: 15,
       code: 'DK-44605',
       name: 'DK-44605',
@@ -104,7 +104,7 @@ class PaperType {
     ),
 
     // DK-N55224: 54mm Continuous White Paper (Non-adhesive) (QL-820NWB only)
-    PaperType(
+    PrinterPaperType(
       labelNameIndex: 14,
       code: 'DK-N55224',
       name: 'DK-N55224',
@@ -117,7 +117,7 @@ class PaperType {
     ),
 
     // DK-22251: 62mm Continuous Black/Red on White (QL-820NWB only)
-    PaperType(
+    PrinterPaperType(
       labelNameIndex: 17,
       code: 'DK-22251',
       name: 'DK-22251',
@@ -131,21 +131,21 @@ class PaperType {
   ];
 
   /// Get paper types supported by a specific printer model
-  static List<PaperType> getPaperTypesForModel(String model) {
+  static List<PrinterPaperType> getPrinterPaperTypesForModel(String model) {
     final normalizedModel = model.toUpperCase().trim();
-    return allPaperTypes
+    return allPrinterPaperTypes
         .where((paper) => paper.supportedModels
             .any((m) => m.toUpperCase() == normalizedModel))
         .toList();
   }
 
   /// Get default paper type (DK-22205 - most common)
-  static PaperType get defaultType => allPaperTypes[1]; // DK-22205
+  static PrinterPaperType get defaultType => allPrinterPaperTypes[1]; // DK-22205
 
   /// Find paper type by code
-  static PaperType? fromCode(String code) {
+  static PrinterPaperType? fromCode(String code) {
     try {
-      return allPaperTypes.firstWhere(
+      return allPrinterPaperTypes.firstWhere(
         (type) => type.code.toUpperCase() == code.toUpperCase(),
       );
     } catch (e) {
@@ -154,9 +154,9 @@ class PaperType {
   }
 
   /// Find paper type by label name index
-  static PaperType? fromLabelNameIndex(int index) {
+  static PrinterPaperType? fromLabelNameIndex(int index) {
     try {
-      return allPaperTypes.firstWhere(
+      return allPrinterPaperTypes.firstWhere(
         (type) => type.labelNameIndex == index,
       );
     } catch (e) {
@@ -182,8 +182,8 @@ class PaperType {
   }
 
   /// Create from JSON
-  factory PaperType.fromJson(Map<String, dynamic> json) {
-    return PaperType(
+  factory PrinterPaperType.fromJson(Map<String, dynamic> json) {
+    return PrinterPaperType(
       labelNameIndex: json['labelNameIndex'] as int,
       code: json['code'] as String,
       name: json['name'] as String,
@@ -226,7 +226,7 @@ class PaperType {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is PaperType && other.code == code;
+    return other is PrinterPaperType && other.code == code;
   }
 
   @override
