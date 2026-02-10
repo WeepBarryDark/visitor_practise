@@ -1,0 +1,36 @@
+  1. Auth Page (/)
+     ├─ pushReplacementNamed → Admin Dashboard
+     ├─ pushReplacementNamed → Kiosk Dashboard (如果已登录)
+     └─ pushReplacementNamed → New Site
+
+  2. New Site Page (/new-site)
+     └─ pushReplacementNamed → Admin Dashboard
+
+  3. Admin Dashboard (/admin-dashboard)
+     ├─ pushReplacementNamed → New Site (换站点)
+     ├─ pushReplacementNamed → Kiosk Dashboard ✅ (确认配置)
+     └─ pushNamedAndRemoveUntil → Auth (登出)
+
+  4. Kiosk Dashboard (/visitor-kiosk)
+     ├─ pushNamed → Visitor Sign In
+     ├─ pushNamed → Visitor Sign Out
+     ├─ pushNamed → Delivery
+     ├─ pushNamed → Contractor Sign In
+     ├─ pushNamed → Badge Retrieve
+     └─ pushNamedAndRemoveUntil → Admin Dashboard (管理员按钮)
+
+  5. Kiosk 子页面 (都用 pushNamed，可以返回)
+     ├─ /visitor-sign-in (需要打印机！)
+     ├─ /visitor-sign-out
+     ├─ /delivery
+     ├─ /user-contractor-in (需要打印机！)
+     └─ /badge-retrieve (需要打印机！)
+
+  ---
+  🔍 关键发现
+
+  当前实现：
+
+  1. Admin → Kiosk：pushReplacementNamed（销毁 Admin，无法返回）
+  2. Kiosk → Admin：pushNamedAndRemoveUntil（清空所有，重新进入 Admin）
+  3. Kiosk → 子页面：pushNamed（传递 kioskController，可以返回）

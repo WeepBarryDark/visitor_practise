@@ -1,3 +1,5 @@
+import 'package:visitor_practise/core/models/site_person.dart';
+
 /// 🏢 Site Item Model - Represents a construction site or work location
 ///
 /// **PURPOSE:**
@@ -28,12 +30,13 @@
 ///   'title': 'Thirroul Development',
 ///   'address': '50 Redman Ave, THIRROUL, NSW',
 ///   'active': true,
-///   'site_manager': 'Luke One1',
-///   'site_supervisor': 'Luke McIndoe',
+///   'site_manager': {'id': 123, 'name': 'Luke One1'},
+///   'site_supervisor': {'id': 456, 'name': 'Luke McIndoe'},
 /// });
 ///
 /// // Access properties
 /// print(site.title); // "Thirroul Development"
+/// print(site.siteSupervisor.name); // "Luke McIndoe"
 /// print(site.isActive); // true
 /// ```
 class SiteItem {
@@ -41,8 +44,8 @@ class SiteItem {
   final String title;   /// Display name of the site (e.g., "Thirroul Development")
   final String address;   /// Physical address of the site
   final bool active;   /// Whether the site is currently active (accepting visitors)
-  final String siteManager;   /// Name of the site manager
-  final String siteSupervisor;   /// Name of the site supervisor
+  final String siteManager;   /// Site manager information (id and name)
+  final SitePerson siteSupervisor;   /// Site supervisor information (id and name)
   final DateTime createdAt;   /// When the site was created in the system
   final DateTime updatedAt;   /// When the site was last updated
 
@@ -94,8 +97,8 @@ class SiteItem {
       // Try multiple possible field names for manager
       siteManager: (json['site_manager'] ?? json['manager'] ?? '').toString(),
 
-      // Try multiple possible field names for supervisor
-      siteSupervisor: (json['site_supervisor'] ?? json['supervisor'] ?? '').toString(),
+      // Parse supervisor (handles both string and object format)
+      siteSupervisor: SitePerson.fromJson(json['site_supervisor'] ?? json['supervisor'] ?? ''),
 
       // Parse dates safely (handle null or invalid dates)
       createdAt: _parseDate(json['created_at'] ?? json['createdAt']),
@@ -114,7 +117,7 @@ class SiteItem {
       'address': address,
       'active': active,
       'site_manager': siteManager,
-      'site_supervisor': siteSupervisor,
+      'site_supervisor': siteSupervisor.toJson(),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };

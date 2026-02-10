@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/constants/app_routes.dart';
-import 'package:visitor_practise/core/models/logos_background.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
 import 'package:visitor_practise/services/api_service.dart';
 import 'package:visitor_practise/services/model_service/logos_background_service.dart';
@@ -140,7 +139,7 @@ class NewSiterControllder extends ChangeNotifier {
           e.title.toLowerCase().contains(q) ||
           e.address.toLowerCase().contains(q) ||
           e.siteManager.toLowerCase().contains(q) ||
-          e.siteSupervisor.toLowerCase().contains(q));
+          e.siteSupervisor.name.toLowerCase().contains(q));
     }
 
     return items.toList(growable: false);

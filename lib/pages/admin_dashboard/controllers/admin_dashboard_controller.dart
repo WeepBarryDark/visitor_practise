@@ -9,7 +9,6 @@ import 'package:flutter/rendering.dart';
 import 'package:uuid/uuid.dart';
 import 'package:visitor_practise/core/constants/app_routes.dart';
 import 'package:visitor_practise/core/models/badge_generator.dart';
-import 'package:visitor_practise/core/models/logos_background.dart';
 import 'package:visitor_practise/core/models/printer_discover.dart';
 import 'package:visitor_practise/core/models/printer_paper_type.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
@@ -226,11 +225,22 @@ class AdminDashboardController extends ChangeNotifier {
   }) async {
       final savedToken = await  SecureStorageService.getAuthToken().timeout(const Duration(seconds: 5));
       if (savedToken == null || savedToken.isEmpty) {
-         throw Exception('No token');
+        // Show error BEFORE navigation
+        if (context != null && context.mounted) {
+          context.showError('Token issue, please sign in again');
+          await Future.delayed(const Duration(milliseconds: 800));
+        }
+        await onAlreadyRedirect(AppRoutes.auth);
+        return;
       }
-      //if no select -> Jump to site select page  
+      //if no select -> Jump to site select page
       final savedSelectedSite = await  SecureStorageService.getSelectedSite().timeout(const Duration(seconds: 5));
       if (savedSelectedSite == null || savedSelectedSite.isEmpty) {
+        // Show error BEFORE navigation
+        if (context != null && context.mounted) {
+          context.showError('Selected site issue, please reselect site');
+          await Future.delayed(const Duration(milliseconds: 800));
+        }
         await onAlreadyRedirect(AppRoutes.newSite);
         return;
       }
@@ -247,6 +257,8 @@ class AdminDashboardController extends ChangeNotifier {
         return;
       }
       //-------------------------------------------------end
+
+      //------------------------------------------------
       final clientJson = await ApiService.fetchVisitorClient(savedToken).timeout(const Duration(seconds: 5));
       //debugPrint(jsonEncode(clientJson));
       //{"logo":"https://storage.worxsafety.com.au/site/public/22080/pblogo.svg","background_image":"https://storage.worxsafety.com.au/site/public/7/60dbb67c245b3_bg-masthead.jpg","slug":"pinkbatteries","name":"HUGH ARTHUR TORNEY","trading_name":"Pink Batteries"}
@@ -304,14 +316,10 @@ class AdminDashboardController extends ChangeNotifier {
       final lastAccess = await SecureStorageService.getLastKioskAccess().timeout(const Duration(seconds: 50));
       if (lastAccess == 'kiosk_dashboard')
       {
-        //TODO
-        final token = await SecureStorageService.getAuthToken().timeout(const Duration(seconds: 50));
-        final alreadyAuthed = token != null && token.isNotEmpty;
-
         _hasError = false;
         notifyListeners();
 
-        return alreadyAuthed; // return true -> jump to kiosk dashboard
+        return true; // return true -> jump to kiosk dashboard
       }
       return false;
     } on TimeoutException {

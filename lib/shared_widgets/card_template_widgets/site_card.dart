@@ -107,7 +107,7 @@ class SiteCard extends StatelessWidget {
               ],
 
               // Site Supervisor
-              if (site.siteSupervisor.isNotEmpty)
+              if (site.siteSupervisor.name.isNotEmpty)
                 Row(
                   children: [
                     Icon(

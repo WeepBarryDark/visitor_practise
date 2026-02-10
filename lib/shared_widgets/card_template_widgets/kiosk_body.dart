@@ -45,15 +45,15 @@ class KioskBody extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            //top logo and print indictor 
+            //top logo and print indicator
             Row(
               children: [
                 Icon(
                   printReady ? Icons.print : Icons.print_disabled,
-                  color: printReady ? AppTheme.successColor : Colors.white,
+                  color: printReady ? AppTheme.successColor : AppTheme.slate400,
                   size: 20,
                 ),
-                Spacer(),
+                const Spacer(),
                 // Top logo
                 if (topLogo != null) Center(child: topLogo),
                 const SizedBox(height: 14),
@@ -108,7 +108,7 @@ class KioskBody extends StatelessWidget {
                         border: Border.all(color: cs.outline),
                       ),
                       child: Text(
-                        "Site Supervisor: ${supervisorName!}",
+                        "Supervisor: ${supervisorName!}",
                         style: tt.bodyMedium?.copyWith(color: cs.tertiary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

@@ -24,10 +24,10 @@ class KioskDashboardMain extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxBodyWidth),
           child: KioskBody(
-            topLogoBytes: kioskController.topLogo!, 
-            siteTitle: "test", 
-            printReady: true, 
-            supervisorName: "Barry Wang",
+            topLogoBytes: kioskController.topLogo!,
+            siteTitle: kioskController.currentSite.title,
+            printReady: kioskController.isPrinterReady,
+            supervisorName: kioskController.currentSite.siteSupervisor.name,
             menuContent: Card(
               child: Padding(
                 padding: const EdgeInsets.all(20),
