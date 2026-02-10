@@ -196,49 +196,16 @@ class PrintTestCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     // test print button----------------------------------
                     OutlinedButton.icon(
-                      onPressed: (adminController.isInitializedPrinter) ? adminController.startTestPrint : null,
-                      icon: adminController.isPrinting 
+                      onPressed: (adminController.isInitializedPrinter && adminController.selectedPaperType != null)
+                        ? () => adminController.startTestPrint(context)
+                        : null,
+                      icon: adminController.isPrinting
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2,))
                         : const Icon(Icons.print),
                       label: Text(adminController.isPrinting  ? 'Printing...' : 'Run Test Print'),
                     ),
                     // test print button-------------------------------end
-                    //show hint - you can only run test once per paper----
-                    const SizedBox(height: 8),
-                    if (adminController.hasTestPrinted) ... [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: Colors.orange.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              size: 16,
-                              color: Colors.orange.shade700,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Test print completed. Change paper type to run test print again.',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.orange.shade700,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    //show hint - you can only run test once per paper-end
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 16),
                     //Current selected Paper Type-------------------------
                     if (adminController.selectedPaperType != null) ...[
                       const SizedBox(height: 8),

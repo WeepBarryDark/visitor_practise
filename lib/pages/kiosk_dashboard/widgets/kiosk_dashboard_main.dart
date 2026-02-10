@@ -34,15 +34,20 @@ class KioskDashboardMain extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    IconButtonGeneral(icon: Icons.person_add, label: 'Visitor Sign In',  onPressed:  () => Navigator.pushNamed(context, AppRoutes.kioskVisitorSignIn, arguments: kioskController,)),
-                    const SizedBox(height: 14),
-                    IconButtonGeneral(icon: Icons.logout, label: 'Visitor Sign Out',  onPressed:  () => Navigator.pushNamed(context, AppRoutes.kioskVisitorSignOut, arguments: kioskController,)),
-                    const SizedBox(height: 14),
-                    IconButtonGeneral(icon: Icons.local_shipping, label: 'Delivery',  onPressed:  () => Navigator.pushNamed(context, AppRoutes.kioskDeliveries, arguments: kioskController,)),
-                    const SizedBox(height: 14),
-                    IconButtonGeneral(icon: Icons.person_add, label: 'Contractor Sign In',  onPressed:  () => Navigator.pushNamed(context, AppRoutes.kioskContractorSignIn, arguments: kioskController,)),
-                    const SizedBox(height: 14),
-                    IconButtonGeneral(icon: Icons.person_add, label: 'Retrieve Badge',  onPressed:  () => Navigator.pushNamed(context, AppRoutes.kioskVisitorBadgeRetrieve, arguments: kioskController,)),
+                    if(kioskController.enableVisitorSignIn)
+                      IconButtonGeneral(icon: Icons.person_add, label: 'Visitor Sign In',  onPressed:  () => Navigator.pushNamed(context, AppRoutes.kioskVisitorSignIn, arguments: kioskController,)),
+                      const SizedBox(height: 14),
+                    if(kioskController.enableVisitorSignIn)
+                      IconButtonGeneral(icon: Icons.logout, label: 'Visitor Sign Out',  onPressed:  () => Navigator.pushNamed(context, AppRoutes.kioskVisitorSignOut, arguments: kioskController,)),
+                      const SizedBox(height: 14),
+                    if(kioskController.enableVisitorDelivery)
+                      IconButtonGeneral(icon: Icons.local_shipping, label: 'Delivery',  onPressed:  () => Navigator.pushNamed(context, AppRoutes.kioskDeliveries, arguments: kioskController,)),
+                      const SizedBox(height: 14),
+                    if(kioskController.enableContractorSignIn)
+                      IconButtonGeneral(icon: Icons.person_add, label: 'Contractor Sign In',  onPressed:  () => Navigator.pushNamed(context, AppRoutes.kioskContractorSignIn, arguments: kioskController,)),
+                      const SizedBox(height: 14),
+                    if(kioskController.enableVisitorRetrieveBadge)
+                      IconButtonGeneral(icon: Icons.person_add, label: 'Retrieve Badge',  onPressed:  () => Navigator.pushNamed(context, AppRoutes.kioskVisitorBadgeRetrieve, arguments: kioskController,)),
                   ],
                 ),
               ),

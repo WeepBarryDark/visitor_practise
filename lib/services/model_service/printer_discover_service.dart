@@ -8,19 +8,18 @@ class PrinterDiscoverService {
   /// Discover network printers by printer model
   static Future<List<PrinterDiscover>> getNetPrinters(printer.Model model) async {
     try {
-      debugPrint('🔍 Starting network printer discovery for model: ${model.getName()}');
+      debugPrint('Starting network printer discovery for model: ${model.getName()}');
 
       // Discover printers on network
-      debugPrint('📡 Scanning network for printers...');
       final printerInstance = printer.Printer();
       final printers = await printerInstance.getNetPrinters([model.getName()]);
 
       if (printers.isEmpty) {
-        debugPrint('⚠️ No network printers found for model: ${model.getName()}');
+        debugPrint('No network printers found for model: ${model.getName()}');
         return [];
       }
 
-      debugPrint('✅ Found ${printers.length} printer(s) on network');
+      debugPrint('Found ${printers.length} printer(s) on network');
 
       // Convert to PrinterDiscover list
       final discoveredPrinters = <PrinterDiscover>[];
@@ -38,30 +37,31 @@ class PrinterDiscoverService {
           printerInfo: printerInfo,
         );
         discoveredPrinters.add(printerDiscover);
-        debugPrint('   📌 ${printerDiscover.printerName} @ ${printerDiscover.printerAddress}');
+        debugPrint('found ${printerDiscover.printerName} in ${printerDiscover.printerAddress}');
       }
 
       return discoveredPrinters;
     } catch (e, stackTrace) {
-      debugPrint('❌ Network printer discovery failed: $e');
+      debugPrint('Network printer discovery failed: $e');
       debugPrint('Stack trace: $stackTrace');
       return [];
     }
   }
 
+  /*
   /// Connect to printer via USB and printer model
   static Future<PrinterDiscover?> connectByUsb({
     required printer.Model model,
   }) async {
     try {
-      debugPrint('🔌 Attempting to connect to printer via USB (Model: ${model.getName()})');
+      debugPrint('Attempting to connect to printer via USB (Model: ${model.getName()})');
 
       // Create printer info for USB connection
       final printerInfo = printer.PrinterInfo()
         ..printerModel = model
         ..port = printer.Port.USB;
 
-      debugPrint('✅ Successfully created USB printer connection');
+      debugPrint('Successfully created USB printer connection');
 
       // Create PrinterDiscover instance
       final printerDiscover = PrinterDiscover(
@@ -76,11 +76,12 @@ class PrinterDiscoverService {
 
       return printerDiscover;
     } catch (e, stackTrace) {
-      debugPrint('❌ Failed to connect by USB: $e');
+      debugPrint('Failed to connect by USB: $e');
       debugPrint('Stack trace: $stackTrace');
       return null;
     }
   }
+  */
 
   /// Connect to printer by IP address and printer model
   static Future<PrinterDiscover?> connectByIp({
@@ -88,7 +89,7 @@ class PrinterDiscoverService {
     required printer.Model model,
   }) async {
     try {
-      debugPrint('🔌 Attempting to connect to printer at $ipAddress (Model: ${model.getName()})');
+      debugPrint('Attempting to connect to printer at $ipAddress (Model: ${model.getName()})');
 
       // Validate IP address format
       if (!_isValidIpAddress(ipAddress)) {
@@ -102,7 +103,21 @@ class PrinterDiscoverService {
         ..port = printer.Port.NET
         ..ipAddress = ipAddress;
 
-      debugPrint('Successfully created printer connection for $ipAddress');
+      // Test connection by getting printer status
+      debugPrint('Testing connection to printer at $ipAddress...');
+      final testPrinter = printer.Printer();
+      await testPrinter.setPrinterInfo(printerInfo);
+
+      // Try to get printer status to verify connection
+      final printerStatus = await testPrinter.getPrinterStatus();
+
+      if (printerStatus.errorCode != printer.ErrorCode.ERROR_NONE) {
+        debugPrint('Failed to connect: ${printerStatus.errorCode}');
+        return null;
+      }
+
+      debugPrint('Successfully connected to printer at $ipAddress');
+      debugPrint('Status: ${printerStatus.errorCode}');
 
       // Create PrinterDiscover instance
       final printerDiscover = PrinterDiscover(
@@ -131,7 +146,7 @@ class PrinterDiscoverService {
         address: printerDiscover.printerAddress,
         model: printerDiscover.printerModel,
       );
-      debugPrint('💾 Printer saved to local storage: ${printerDiscover.printerName}');
+      debugPrint('Printer saved to local storage: ${printerDiscover.printerName}');
     } catch (e) {
       debugPrint('Failed to save printer: $e');
     }

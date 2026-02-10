@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:another_brother/printer_info.dart' as brother;
@@ -30,7 +31,33 @@ class PrintStatusCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('Printer Setup', style: tt.titleMedium),
-            //IOS allows internet connection only, android and windows allow both internet and USB
+            const SizedBox(height: 8),
+            // Supported printer series info
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryBlue.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 16, color: AppTheme.primaryBlue),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Supports Brother QL, PT, TD, and RJ series printers ONLY. Not Die-Cut Paper Type',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.slate700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 16),
               SwitchListTile(
                 value: adminController.reqPrint,
@@ -122,12 +149,13 @@ class PrintStatusCard extends StatelessWidget {
                       icon: Icon(Icons.lan),
                     ),
                     // USB only available on Android and Windows
+                    /*
                     if (Platform.isAndroid || Platform.isWindows)
                       const ButtonSegment<String>(
                         value: 'usb',
                         label: Text('USB'),
                         icon: Icon(Icons.usb),
-                      ),
+                      ),*/
                   ],
                   selected: {adminController.printerConnectionType},
                   onSelectionChanged: adminController.isInitializingdPrinter
@@ -358,7 +386,9 @@ class PrintStatusCard extends StatelessWidget {
               ],
               const SizedBox(height: 12),
               //all warning--------------------------------------------------------------------------
-              if(!adminController.isInitializedPrinter && adminController.hasAttemptedConnection) ... [
+              if(!adminController.isInitializedPrinter &&
+                 adminController.hasAttemptedConnection &&
+                 !adminController.isInitializingdPrinter) ... [
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(14),

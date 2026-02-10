@@ -1,3 +1,31 @@
+/// Printer Paper Type Model for Brother Label Printers
+///
+/// IMPORTANT - How labelNameIndex Works:
+/// ========================================
+/// The Brother SDK uses `labelNameIndex` to identify paper types for printing.
+///
+/// For CONTINUOUS ROLLS:
+///   ✅ labelNameIndex has specific values (14, 15, 17, etc.)
+///   ✅ Maps to QL_700 enum: W29 (14), W62 (15), W62RB (17)
+///   ✅ Printer can validate the exact paper type
+///
+/// DIE-CUT LABELS NOT SUPPORTED:
+///   - Brother SDK does not provide reliable support for die-cut labels
+///   - labelNameIndex = -1 causes unpredictable behavior
+///   - May cause ERROR_WRONG_LABEL or print quality issues
+///   - Only CONTINUOUS ROLLS are included in this app
+///
+/// Supported paper types (all continuous rolls):
+///   ✅ DK-2210 (29mm) - labelNameIndex: 14
+///   ✅ DK-22113 (62mm Clear Film) - labelNameIndex: 15
+///   ✅ DK-22205 (62mm White Paper) - labelNameIndex: 15 ⭐ Recommended
+///   ✅ DK-22212 (62mm White Film) - labelNameIndex: 15
+///   ✅ DK-22606 (62mm Yellow Film) - labelNameIndex: 15
+///   ✅ DK-44205 (62mm Removable) - labelNameIndex: 15
+///   ✅ DK-44605 (62mm Yellow Removable) - labelNameIndex: 15
+///   ✅ DK-N55224 (54mm Non-adhesive, QL-820NWB only) - labelNameIndex: 14
+///   ✅ DK-22251 (62mm Red/Black, QL-820NWB only) - labelNameIndex: 17
+///
 class PrinterPaperType {
   final int labelNameIndex;
   final String code; // DK-22205, DK-22251, etc.
@@ -59,142 +87,8 @@ labelParam.imageAreaLength;  //
 */
 
   /// All supported paper types for Brother QL series printers
+  /// ⚠️ Only CONTINUOUS ROLLS are supported - die-cut labels removed due to SDK limitations
   static const List<PrinterPaperType> allPrinterPaperTypes = [
-    // ==================== DIE-CUT LABELS ====================
-
-    // DK-1219: 12mm x 12mm Round Labels
-    PrinterPaperType(
-      labelNameIndex: -1,
-      code: 'DK-1219',
-      name: 'DK-1219',
-      description: '12mm Round Labels (1200/roll)',
-      width: '12mm',
-      isContinuous: false,
-      material: 'White Paper',
-      supportedModels: ['QL-820NWB', 'QL-720NW', 'QL-800', 'QL-810W'],
-    ),
-
-    // DK-1204: 17mm x 54mm Multi Purpose
-    PrinterPaperType(
-      labelNameIndex: -1,
-      code: 'DK-1204',
-      name: 'DK-1204',
-      description: '17mm x 54mm Multi Purpose (400/roll)',
-      width: '17mm',
-      isContinuous: false,
-      material: 'White Paper',
-      supportedModels: ['QL-820NWB', 'QL-720NW', 'QL-800', 'QL-810W'],
-    ),
-
-    // DK-1203: 17mm x 87mm File Folder
-    PrinterPaperType(
-      labelNameIndex: -1,
-      code: 'DK-1203',
-      name: 'DK-1203',
-      description: '17mm x 87mm File Folder (300/roll)',
-      width: '17mm',
-      isContinuous: false,
-      material: 'White Paper',
-      supportedModels: ['QL-820NWB', 'QL-720NW', 'QL-800', 'QL-810W'],
-    ),
-
-    // DK-1221: 23mm x 23mm Square
-    PrinterPaperType(
-      labelNameIndex: -1,
-      code: 'DK-1221',
-      name: 'DK-1221',
-      description: '23mm Square Labels (1000/roll)',
-      width: '23mm',
-      isContinuous: false,
-      material: 'White Paper',
-      supportedModels: ['QL-820NWB', 'QL-720NW', 'QL-800', 'QL-810W'],
-    ),
-
-    // DK-1218: 24mm x 24mm Round
-    PrinterPaperType(
-      labelNameIndex: -1,
-      code: 'DK-1218',
-      name: 'DK-1218',
-      description: '24mm Round Labels (1000/roll)',
-      width: '24mm',
-      isContinuous: false,
-      material: 'White Paper',
-      supportedModels: ['QL-820NWB', 'QL-720NW', 'QL-800', 'QL-810W'],
-    ),
-
-    // DK-1209: 29mm x 62mm Small Address
-    PrinterPaperType(
-      labelNameIndex: -1,
-      code: 'DK-1209',
-      name: 'DK-1209',
-      description: '29mm x 62mm Small Address (800/roll)',
-      width: '29mm',
-      isContinuous: false,
-      material: 'White Paper',
-      supportedModels: ['QL-820NWB', 'QL-720NW', 'QL-800', 'QL-810W'],
-    ),
-
-    // DK-1201: 29mm x 90mm Standard Address
-    PrinterPaperType(
-      labelNameIndex: -1,
-      code: 'DK-1201',
-      name: 'DK-1201',
-      description: '29mm x 90mm Standard Address (400/roll)',
-      width: '29mm',
-      isContinuous: false,
-      material: 'White Paper',
-      supportedModels: ['QL-820NWB', 'QL-720NW', 'QL-800', 'QL-810W'],
-    ),
-
-    // DK-1208: 38mm x 90mm Large Address
-    PrinterPaperType(
-      labelNameIndex: -1,
-      code: 'DK-1208',
-      name: 'DK-1208',
-      description: '38mm x 90mm Large Address (400/roll)',
-      width: '38mm',
-      isContinuous: false,
-      material: 'White Paper',
-      supportedModels: ['QL-820NWB', 'QL-720NW', 'QL-800', 'QL-810W'],
-    ),
-
-    // DK-1202: 62mm x 100mm Shipping
-    PrinterPaperType(
-      labelNameIndex: -1,
-      code: 'DK-1202',
-      name: 'DK-1202',
-      description: '62mm x 100mm Shipping (300/roll)',
-      width: '62mm',
-      isContinuous: false,
-      material: 'White Paper',
-      supportedModels: ['QL-820NWB', 'QL-720NW', 'QL-800', 'QL-810W'],
-    ),
-
-    // DK-1234: 60mm x 86mm Name Badge
-    PrinterPaperType(
-      labelNameIndex: -1,
-      code: 'DK-1234',
-      name: 'DK-1234',
-      description: '60mm x 86mm Name Badge (260/roll)',
-      width: '60mm',
-      isContinuous: false,
-      material: 'White Paper',
-      supportedModels: ['QL-820NWB', 'QL-720NW', 'QL-800', 'QL-810W'],
-    ),
-
-    // DK-3235: 29mm x 54mm Removable Die-Cut
-    PrinterPaperType(
-      labelNameIndex: -1,
-      code: 'DK-3235',
-      name: 'DK-3235',
-      description: '29mm x 54mm Removable Die-Cut (800/roll)',
-      width: '29mm',
-      isContinuous: false,
-      material: 'White Paper',
-      isRemovable: true,
-      supportedModels: ['QL-820NWB', 'QL-720NW', 'QL-800', 'QL-810W'],
-    ),
-
     // ==================== CONTINUOUS ROLLS ====================
 
     // DK-2210: 29mm Continuous
@@ -320,7 +214,7 @@ labelParam.imageAreaLength;  //
   }
 
   /// Get default paper type (DK-22205 - most common)
-  static PrinterPaperType get defaultType => allPrinterPaperTypes[1]; // DK-22205
+  static PrinterPaperType get defaultType => allPrinterPaperTypes[2]; // DK-22205 (index adjusted after removing die-cut)
 
   /// Find paper type by code
   static PrinterPaperType? fromCode(String code) {
@@ -343,6 +237,18 @@ labelParam.imageAreaLength;  //
       return null;
     }
   }
+
+  /// Get the paper width in millimeters (numeric value only)
+  /// Used by the printer when labelNameIndex is not available (-1)
+  int get widthInMm {
+    // Extract numeric value from width string (e.g., "62mm" -> 62)
+    final match = RegExp(r'(\d+)').firstMatch(width);
+    return match != null ? int.parse(match.group(1)!) : 0;
+  }
+
+  /// Check if this paper type has a valid labelNameIndex for SDK
+  /// Returns false for die-cut labels that use -1 (UNSUPPORTED)
+  bool get hasValidLabelIndex => labelNameIndex >= 0;
 
   /// Convert to JSON for storage
   Map<String, dynamic> toJson() {

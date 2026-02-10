@@ -133,7 +133,7 @@ class SecureStorageService {
       return null;
     }
   }
-  ///------------------------------------------ Last selected site 
+  ///------------------------------------------ Last selected site
   /// Save last printer page (string)-----------------------------
   static Future<void> saveLastPrinter({
     required String name,

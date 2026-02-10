@@ -1,0 +1,91 @@
+I/flutter (18589): Starting network printer discovery for model: QL-820NWB
+D/nativeloader(18589): Load /data/app/~~PnNT0PXSb9au-RUqAbS-0w==/com.example.visitor_practise-gfmNK5Oe5DkzzTJlJaL_vQ==/base.apk!/lib/arm64-v8a/libcreatedata.so using class loader ns clns-4 (caller=/data/app/~~PnNT0PXSb9au-RUqAbS-0w==/com.example.visitor_practise-gfmNK5Oe5DkzzTJlJaL_vQ==/base.apk): ok
+E/A-Brother(18589): Printers: [Lcom.brother.ptouch.sdk.NetPrinter;@9373ba2
+E/A-Brother(18589): Printer Name: Brother QL-820NWB
+E/A-Brother(18589):  Out Printers: [{nodeName=BRW4CD577EB65A4, modelName=Brother QL-820NWB, macAddress=4C:D5:77:EB:65:A4, serNo=C3G479922, ipAddress=192.168.1.190, location=}]
+I/flutter (18589): Found 1 printer(s) on network
+I/flutter (18589): found QL-820NWB in 192.168.1.190
+I/flutter (18589): Connected to printer: QL-820NWB at 192.168.1.190
+I/flutter (18589): Printer info saved to local storage
+
+---------------------------------------------------------------------------
+I/flutter (18589): Loading paper types for model: QL-820NWB
+I/flutter (18589): Found 20 paper types for QL-820NWB
+E/A-Brother(18589): Label Info: -1
+I/flutter (18589): Label Info: {labelNameIndex: -1, isEndCut: true, isAutoCut: true, isHalfCut: false, isSpecialTape: false, labelType: 65535, labelFontColor: {name: UNSUPPORT, id: -1}, isCutMark: false, labelColor: {name: UNSUPPORT, id: -1}}
+
+await printer.setPrinterInfo(printerInfo);
+final labelInfo = await printer.getLabelInfo();  ----------------------------------------------------------------------
+
+I/flutter (18589): Label Info from printer:
+I/flutter (18589): labelNameIndex: -1
+I/flutter (18589): labelColor: UNSUPPORT
+I/flutter (18589): isSpecialTape: false
+D/Brother Print SDK(18589): no such enum object for the id: 0
+D/Brother Print SDK(18589): no such enum object for the id: 129
+
+final printerStatus = await printer.getPrinterStatus(); ----------------------------------------------------------------------
+I/flutter (18589): Printer Status:
+I/flutter (18589): errorCode: Instance of 'ErrorCode'
+I/flutter (18589): status: {errorCode: {id: 1, name: ERROR_NONE}, labelId: 65535, labelType: 65535, isACConnected: {id: 1, name: Yes}, isBatteryMounted: {id: -1, name: Unknown}, batteryLevel: 4, batteryResidualQuantityLevel: -1, maxOfBatteryResidualQuantityLevel: -1}
+I/isitor_practis(18589): Explicit concurrent copying GC freed 1565KB AllocSpace bytes, 5(384KB) LOS objects, 54% free, 5202KB/11MB, paused 697us,22us total 17.555ms
+D/InputTransport(18589): Input channel destroyed: 'ClientS', fd=140
+D/InputTransport(18589): Input channel destroyed: 'ClientS', fd=166
+D/InputTransport(18589): Input channel destroyed: 'ClientS', fd=146
+D/InputTransport(18589): Input channel destroyed: 'ClientS', fd=152
+I/isitor_practis(18589): Explicit concurrent copying GC freed 101KB AllocSpace bytes, 0(0B) LOS objects, 54% free, 5181KB/11MB, paused 332us,37us total 31.363ms
+
+final Map<brother.PrinterSettingItem, String> settingsOut = {};----------------------------------------------------------------------
+final List<brother.PrinterSettingItem> settingsToQuery = [
+    brother.PrinterSettingItem.PRINT_DENSITY,
+    brother.PrinterSettingItem.PRINT_SPEED,
+    brother.PrinterSettingItem.NET_STATIC_IPV4ADDRESS,
+    brother.PrinterSettingItem.NET_NODENAME,
+];
+
+final settingsStatus = await printer.getPrinterSettings(
+    settingsToQuery,
+    settingsOut,
+);
+
+D/Brother Print SDK(18589): no such enum object for the id: 0
+D/Brother Print SDK(18589): no such enum object for the id: 129
+I/flutter (18589): Printer Settings:
+I/flutter (18589): PRINT_DENSITY: 
+I/flutter (18589): NET_STATIC_IPV4ADDRESS: 192.168.1.190
+I/flutter (18589): NET_NODENAME: BRW4CD577EB65A4
+I/flutter (18589): PRINT_SPEED:
+I/flutter (18589): getLabelParam() is not available - using manual selection
+I/flutter (18589): Printer cannot detect paper type (labelNameIndex: -1)
+I/flutter (18589): Please manually select the paper type installed in your printer
+I/flutter (18589): Paper types ready: 20 options available
+I/DecorView(18589): getCurrentDensityDpi: from real metrics. densityDpi=480 msg=remove_caption
+I/DecorView(18589): [INFO] isPopOver=false, config=true
+I/DecorView(18589): updateCaptionType >> DecorView@13e6a76[MainActivity], isFloating=false, isApplication=true, hasWindowControllerCallback=true, hasWindowDecorCaption=false
+D/DecorView(18589): setCaptionType = 0, this = DecorView@13e6a76[MainActivity]
+I/MSHandlerLifeCycle(18589): isMultiSplitHandlerRequested: windowingMode=1 isFullscreen=true isPopOver=false isHidden=false skipActivityType=false isHandlerType=true this: DecorView@13e6a76[MainActivity]     
+I/MSHandlerLifeCycle(18589): removeMultiSplitHandler: no exist. decor=DecorView@13e6a76[MainActivity]
+V/ViewRootImpl@51eb802[MainActivity](18589): updateAppliedLetterboxDirection, direction=2, Caller=android.view.ViewRootImpl.handleDispatchLetterboxDirectionChanged:12578
+I/ViewRootImpl@51eb802[MainActivity](18589): handleResized, msg = 5 frames=ClientWindowFrames{frame=[0,0][2312,1080] display=[0,0][2312,1080] backdrop=[0,0][2312,1080]} forceNextWindowRelayout=true displayId=0 frameChanged=true backdropFrameChanged=true configChanged=true displayChanged=false mNextDrawUseBlastSync=false mergedConfiguration={mGlobalConfig={1.0 ?mcc?mnc [en_AU,zh_CN_#Hans] ldltr sw360dp w722dp h330dp 480dpi nrml long land finger -keyb/v/h -nav/h winConfig={ mBounds=Rect(0, 0 - 2400, 1080) mAppBounds=Rect(144, 0 - 2312, 1080) mMaxBounds=Rect(0, 0 - 2400, 1080) mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_270 mFreeformTaskPinningState=unpinned} s.2670 fontWeightAdjustment=0 ff=0 bf=0 bts=0 desktop/d dm/n dc/d ?dcui ?dcaf enb/d themeSeq=0} mOverrideConfig={1.0 ?mcc?mnc [en_AU,zh_CN_#Hans] ldltr sw360dp w722dp h330dp 480dpi nrml long land finger -keyb/v/h -nav/h winConfig={ mBounds=Rect(0, 0 - 2400, 1080) mAppBounds=Rect(144, 0 - 2312, 1080) mMaxBounds=Rect(0, 0 - 2400, 1080) mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=standard mAlwaysOnTop=undefined mRotation=ROTATION_270 mFreeformTaskPinningState=unpinned} s.2 fontWeightAdjustment=0 ff=0 bf=0 bts=0 desktop/d dm/n dc/d ?dcui ?dcaf enb/d themeSeq=0}}
+I/ViewRootImpl@51eb802[MainActivity](18589): [DP] dp(1) 1 android.view.ViewRootImpl.reportNextDraw:11240 android.view.ViewRootImpl.handleResized:2157 android.view.ViewRootImpl.access$1000:290
+I/ViewRootImpl@51eb802[MainActivity](18589): Relayout returned: old=(0,0,2312,1080) new=(0,0,2312,1080) req=(2312,1080)0 dur=2 res=0x3 s={true 486925799424} ch=false fn=68
+I/ViewRootImpl@51eb802[MainActivity](18589): updateBoundsLayer: t = android.view.SurfaceControl$Transaction@5625f62 sc = Surface(name=Bounds for - com.example.visitor_practise/com.example.visitor_practise.MainActivity@0)/@0xbbea8f3 frame = 68
+I/SurfaceView(18589): updateSurface: mVisible = true mSurface.isValid() = true
+I/SurfaceView(18589): updateSurface: mSurfaceCreated = true surfaceChanged = false visibleChanged = false
+I/SurfaceView(18589): surfaceChanged (2168,1080) 1 #5 io.flutter.embedding.android.FlutterSurfaceView{2beff98 V.E...... ......ID 0,0-2168,1080}
+I/ViewRootImpl@51eb802[MainActivity](18589): [DP] dp(2) 1 android.view.SurfaceView.updateSurface:1369 android.view.SurfaceView.setFrame:683 android.view.View.layout:24453
+I/ViewRootImpl@51eb802[MainActivity](18589): [DP] pdf(1) 1 android.view.SurfaceView.notifyDrawFinished:607 android.view.SurfaceView.performDrawFinished:594 android.view.SurfaceView.$r8$lambda$st27mCkd9jfJkTrN_P3qIGKX6NY:0
+D/ViewRootImpl@51eb802[MainActivity](18589): Creating frameCompleteCallback mNextDrawUseBlastSync=false mReportNextDraw=true commitCallbacks size=0
+I/View    (18589): draw TR bounds[ Rect(2231, 0 - 2312, 81) ] color[ ff000000 ] this - DecorView@13e6a76[MainActivity]
+I/View    (18589): draw BR bounds[ Rect(2231, 999 - 2312, 1080) ] color[ ff000000 ] this - DecorView@13e6a76[MainActivity]
+D/ViewRootImpl@51eb802[MainActivity](18589): Received frameCompleteCallback frameNum=68
+I/BufferQueueProducer(18589): [SurfaceView - com.example.visitor_practise/com.example.visitor_practise.MainActivity@2beff98@0#1(BLAST Consumer)1](id:489d00000001,api:1,p:18589,c:18589) FrameBooster: VULKAN surface was catched
+D/isitor_practis(18589): FrameBooster: InterpolationGui: UID 10656 detected as using Vulkan
+I/ViewRootImpl@51eb802[MainActivity](18589): [DP] pdf(0) 1 android.view.ViewRootImpl.lambda$createFrameCompleteCallback$3$ViewRootImpl:4845 android.view.ViewRootImpl$$ExternalSyntheticLambda15.run:6 android.os.Handler.handleCallback:938
+I/ViewRootImpl@51eb802[MainActivity](18589): [DP] rdf()
+D/ViewRootImpl@51eb802[MainActivity](18589): reportDrawFinished (fn: 68)
+V/ViewRootImpl@51eb802[MainActivity](18589): updateAppliedLetterboxDirection, direction=0, Caller=android.view.ViewRootImpl.handleDispatchLetterboxDirectionChanged:12578
+E/Surface (18589): freeAllBuffers: 1 buffers were freed while being dequeued!
+V/ViewRootImpl@51eb802[MainActivity](18589): updateAppliedLetterboxDirection, direction=2, Caller=android.view.ViewRootImpl.handleDispatchLetterboxDirectionChanged:12578
+I/View    (18589): draw TR bounds[ Rect(2231, 0 - 2312, 81) ] color[ ff000000 ] this - DecorView@13e6a76[MainActivity]
+I/View    (18589): draw BR bounds[ Rect(2231, 999 - 2312, 1080) ] color[ ff000000 ] this - DecorView@13e6a76[MainActivity]
