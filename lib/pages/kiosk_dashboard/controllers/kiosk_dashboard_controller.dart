@@ -17,7 +17,60 @@ class KioskDashboardController extends ChangeNotifier {
   Uint8List? background;
   //------------------------------------
   late final SiteItem currentSite;
-  //----------------------------------------------------
+  //---------------------------------------------------- setting
+  // Screen size setting
+  String _screenSize = 'medium';
+  String get screenSize => _screenSize;
+
+  // Printer settings
+  bool _reqPrint = false;
+  bool get reqPrint => _reqPrint;
+
+  bool _isPrinterReady = false;
+  bool get isPrinterReady => _isPrinterReady;
+
+  // Field configurations
+  bool _reqFullName = true;
+  bool get reqFullName => _reqFullName;
+
+  bool _reqEmail = true;
+  bool get reqEmail => _reqEmail;
+
+  bool _reqPhone = false;
+  bool get reqPhone => _reqPhone;
+
+  bool _reqWorkType = false;
+  bool get reqWorkType => _reqWorkType;
+
+  bool _reqCompany = false;
+  bool get reqCompany => _reqCompany;
+
+  bool _reqAddress = false;
+  bool get reqAddress => _reqAddress;
+
+  bool _reqPersonVisiting = false;
+  bool get reqPersonVisiting => _reqPersonVisiting;
+
+  bool _reqSignInTime = false;
+  bool get reqSignInTime => _reqSignInTime;
+
+  bool _reqVisitorPhoto = false;
+  bool get reqVisitorPhoto => _reqVisitorPhoto;
+
+  // Notification configurations
+  bool _notifyDeliverySms = false;
+  bool get notifyDeliverySms => _notifyDeliverySms;
+
+  bool _notifyDeliveryEmail = false;
+  bool get notifyDeliveryEmail => _notifyDeliveryEmail;
+
+  bool _notifyPersonVisitingSms = false;
+  bool get notifyPersonVisitingSms => _notifyPersonVisitingSms;
+
+  bool _notifyPersonVisitingEmail = false;
+  bool get notifyPersonVisitingEmail => _notifyPersonVisitingEmail;
+
+  //Enable Functionalities
   bool _enableVisitorSignIn = true;
   bool get enableVisitorSignIn => _enableVisitorSignIn;
 
@@ -35,55 +88,8 @@ class KioskDashboardController extends ChangeNotifier {
 
   bool _enableContractorSignOut = false;
   bool get enableContractorSignOut => _enableContractorSignOut;
+  //-------------------------------------------- all setting above
 
-  // Screen size setting
-  String _screenSize = 'medium';
-  String get screenSize => _screenSize;
-
-  // Printer settings
-  bool _reqPrint = false;
-  bool get reqPrint => _reqPrint;
-
-  bool _isPrinterReady = false;
-  bool get isPrinterReady => _isPrinterReady;
-
-  // Field configurations
-  bool _reqPhone = true;
-  bool get reqPhone => _reqPhone;
-
-  bool _reqCompany = true;
-  bool get reqCompany => _reqCompany;
-
-  bool _reqAddress = true;
-  bool get reqAddress => _reqAddress;
-
-  bool _reqWorkType = true;
-  bool get reqWorkType => _reqWorkType;
-
-  bool _reqSupervisor = true;
-  bool get reqSupervisor => _reqSupervisor;
-
-  bool _reqVisitorPhoto = false;
-  bool get reqVisitorPhoto => _reqVisitorPhoto;
-
-  bool _showPhone = true;
-  bool get showPhone => _showPhone;
-
-  bool _showCompany = true;
-  bool get showCompany => _showCompany;
-
-  bool _showAddress = true;
-  bool get showAddress => _showAddress;
-
-  bool _showWorkType = true;
-  bool get showWorkType => _showWorkType;
-
-  // Notification configurations
-  bool _sendSms = true;
-  bool get sendSms => _sendSms;
-
-  bool _sendEmail = true;
-  bool get sendEmail => _sendEmail;
 
   // status
   bool _isCheckingInitial = true;
@@ -93,20 +99,27 @@ class KioskDashboardController extends ChangeNotifier {
   String? _persistentErrorMessage;
   String? get persistentErrorMessage => _persistentErrorMessage;
 
+  /// Set persistent error message (shown at top of dashboard)
+  void setPersistentError(String message) {
+    _persistentErrorMessage = message;
+    notifyListeners();
+  }
+
+  /// Clear persistent error message
+  void clearPersistentError() {
+    _persistentErrorMessage = null;
+    notifyListeners();
+  }
+
   Future<void> initializing({
     required Future<void> Function(String nextRoute) onFailInitialization,
     BuildContext? context,
   }) async {
     try {
-      // Load logos and background
-      try {
-        topLogo = await SecureStorageService.getClientTopLogoBytes().timeout(const Duration(seconds: 5));
-        bottomLogo = await SecureStorageService.getClientBottomLogoBytes().timeout(const Duration(seconds: 5));
-        background = await SecureStorageService.getClientBackgroundBytes().timeout(const Duration(seconds: 5));
-      } catch (e) {
-        debugPrint('Failed to load logos/background: $e');
-        // Continue without logos/background
-      }
+      // Load logos and background - default value, cannot be null
+      topLogo = await SecureStorageService.getClientTopLogoBytes().timeout(const Duration(seconds: 5));
+      bottomLogo = await SecureStorageService.getClientBottomLogoBytes().timeout(const Duration(seconds: 5));
+      background = await SecureStorageService.getClientBackgroundBytes().timeout(const Duration(seconds: 5));
 
       //retrival from local storage for initialization
       //test Token--------------------- go to auth page re-sign
@@ -138,65 +151,40 @@ class KioskDashboardController extends ChangeNotifier {
       final currentSiteMap = jsonDecode(savedSelectedSite) as Map<String, dynamic>;
       currentSite = SiteItem.fromJson(currentSiteMap);
 
-      //test admin settings----------------------------------------use defaults if missing
       final kioskOptions = await SecureStorageService.getAdminDashboardSettings().timeout(const Duration(seconds: 5));
       //final selectedAdminPin = await SecureStorageService.getAdminPin().timeout(const Duration(seconds: 5));
 
       final Map<String, dynamic> kioskOptionsData;
-      if (kioskOptions == null || kioskOptions.isEmpty) {
-        // Use default settings if not configured
-        _persistentErrorMessage = '⚠️ Admin configuration not found. Using default settings. Please configure in Admin Dashboard.';
-        kioskOptionsData = {
-          'enable_visitor_sign_in': true,
-          'enable_visitor_sign_out': true,
-          'enable_visitor_delivery': false,
-          'enable_contractor_sign_in': false,
-          'enable_contractor_sign_out': false,
-          'enable_visitor_retrieve_badge': false,
-          'screen_size': 'medium',
-          'req_print': false,
-          'req_phone': true,
-          'req_company': true,
-          'req_address': true,
-          'req_work_type': true,
-          'req_supervisor': true,
-          'req_visitor_photo': false,
-          'show_phone': true,
-          'show_company': true,
-          'show_address': true,
-          'show_work_type': true,
-          'send_sms': true,
-          'send_email': true,
-        };
-      } else {
+      if (kioskOptions != null && kioskOptions.isNotEmpty) {
         kioskOptionsData = jsonDecode(kioskOptions) as Map<String, dynamic>;
+        //size and printer
+        _screenSize = kioskOptionsData['screen_size'] ?? 'medium';
+        _reqPrint = kioskOptionsData['req_print'] ?? false;
+         // Load field configurations
+        _reqFullName = kioskOptionsData['req_full_name'] ?? true;
+        _reqEmail = kioskOptionsData['req_email'] ?? true;
+        _reqPhone = kioskOptionsData['req_phone'] ?? true;
+        _reqWorkType = kioskOptionsData['req_work_type'] ?? true;
+        _reqCompany = kioskOptionsData['req_company'] ?? true;
+        _reqAddress = kioskOptionsData['req_address'] ?? true;
+        _reqPersonVisiting = kioskOptionsData['req_person_visiting'] ?? true;
+        _reqSignInTime = kioskOptionsData['req_sign_in_time'] ?? false;
+        _reqVisitorPhoto = kioskOptionsData['req_visitor_photo'] ?? false;
+        // Load notification configurations
+        _notifyDeliverySms = kioskOptionsData['notify_delievery_sms'] ?? true;
+        _notifyDeliveryEmail = kioskOptionsData['notify_delievery_email'] ?? true;
+        _notifyPersonVisitingSms = kioskOptionsData['notify_person_visiting_sms'] ?? true;
+        _notifyPersonVisitingEmail = kioskOptionsData['notify_person_visiting_email'] ?? true;
+        //options
+        _enableVisitorSignIn = kioskOptionsData['enable_visitor_sign_in'] ?? true;
+        _enableVisitorSignOut = kioskOptionsData['enable_visitor_sign_out'] ?? true;
+        _enableVisitorDelivery = kioskOptionsData['enable_visitor_delivery'] ?? false;
+        _enableContractorSignIn = kioskOptionsData['enable_contractor_sign_in'] ?? false;
+        _enableContractorSignOut = kioskOptionsData['enable_contractor_sign_out'] ?? false;
+        _enableVisitorRetrieveBadge = kioskOptionsData['enable_visitor_retrieve_badge'] ?? false;
       }
-      _enableVisitorSignIn = kioskOptionsData['enable_visitor_sign_in'] ?? true;
-      _enableVisitorSignOut = kioskOptionsData['enable_visitor_sign_out'] ?? true;
-      _enableVisitorDelivery = kioskOptionsData['enable_visitor_delivery'] ?? false;
-      _enableContractorSignIn = kioskOptionsData['enable_contractor_sign_in'] ?? false;
-      _enableContractorSignOut = kioskOptionsData['enable_contractor_sign_out'] ?? false;
-      _enableVisitorRetrieveBadge = kioskOptionsData['enable_visitor_retrieve_badge'] ?? false;
-      _screenSize = kioskOptionsData['screen_size'] ?? 'medium';
-      _reqPrint = kioskOptionsData['req_print'] ?? false;
 
-      // Load field configurations
-      _reqPhone = kioskOptionsData['req_phone'] ?? true;
-      _reqCompany = kioskOptionsData['req_company'] ?? true;
-      _reqAddress = kioskOptionsData['req_address'] ?? true;
-      _reqWorkType = kioskOptionsData['req_work_type'] ?? true;
-      _reqSupervisor = kioskOptionsData['req_supervisor'] ?? true;
-      _reqVisitorPhoto = kioskOptionsData['req_visitor_photo'] ?? false;
-
-      _showPhone = kioskOptionsData['show_phone'] ?? true;
-      _showCompany = kioskOptionsData['show_company'] ?? true;
-      _showAddress = kioskOptionsData['show_address'] ?? true;
-      _showWorkType = kioskOptionsData['show_work_type'] ?? true;
-
-      // Load notification configurations
-      _sendSms = kioskOptionsData['send_sms'] ?? true;
-      _sendEmail = kioskOptionsData['send_email'] ?? true;
-
+     
       // Check printer configuration
       if (_reqPrint) {
         // Step 1: Check if printer data exists in storage
@@ -206,7 +194,7 @@ class KioskDashboardController extends ChangeNotifier {
         if (printerData == null || paperTypeData == null) {
           // Printer data not found - show persistent error and continue without printing
           _isPrinterReady = false;
-          _persistentErrorMessage = '⚠️ Printer not configured. Please configure in Admin Dashboard. Printing is disabled.';
+          _persistentErrorMessage = 'Printer not configured. Please configure in Admin Dashboard. Printing is disabled.';
           debugPrint('Printer not configured - continuing without printing');
           // Continue loading kiosk
         } else {
@@ -224,61 +212,56 @@ class KioskDashboardController extends ChangeNotifier {
             if (model == brother.Model.UNSUPPORTED) {
               // Printer model unsupported - show persistent error and continue without printing
               _isPrinterReady = false;
-              _persistentErrorMessage = '⚠️ Printer model not supported. Please reconfigure in Admin Dashboard. Printing is disabled.';
+              _persistentErrorMessage = 'Printer model not supported. Please reconfigure in Admin Dashboard. Printing is disabled.';
               debugPrint('Unsupported printer model: $savedModel - continuing without printing');
             } else {
-          // Create printer info
-          final printerInfo = brother.PrinterInfo()
-            ..printerModel = model
-            ..port = savedAddress == 'USB' ? brother.Port.USB : brother.Port.NET
-            ..ipAddress = savedAddress != 'USB' ? savedAddress : '';
+              // Create printer info
+              final printerInfo = brother.PrinterInfo()
+                ..printerModel = model
+                ..port = savedAddress == 'USB' ? brother.Port.USB : brother.Port.NET
+                ..ipAddress = savedAddress != 'USB' ? savedAddress : '';
 
-          // Load paper type
-          final paperType = PrinterPaperType.fromJson(paperTypeData);
-          printerInfo.labelNameIndex = paperType.labelNameIndex;
-          // Step 3: Test printer connection
-          try {
-            final testPrinter = brother.Printer();
-            await testPrinter.setPrinterInfo(printerInfo);
-            final printerStatus = await testPrinter.getPrinterStatus();
+              // Load paper type
+              final paperType = PrinterPaperType.fromJson(paperTypeData);
+              printerInfo.labelNameIndex = paperType.labelNameIndex;
+              // Step 3: Test printer connection
+              try {
+                final testPrinter = brother.Printer();
+                await testPrinter.setPrinterInfo(printerInfo);
+                final printerStatus = await testPrinter.getPrinterStatus();
 
-            if (printerStatus.errorCode == brother.ErrorCode.ERROR_NONE) {
-              // Printer is reachable and ready
-              _isPrinterReady = true;
-              debugPrint('Printer is ready and reachable');
-            } else if (printerStatus.errorCode == brother.ErrorCode.ERROR_COMMUNICATION_ERROR) {
-              // Printer configured but unreachable - show persistent error and continue
-              _isPrinterReady = false;
-              _persistentErrorMessage = '⚠️ Printer is unreachable. Please check printer connection. Printing is disabled.';
-              debugPrint('Printer communication error - continuing without printing capability');
-            } else {
-              // Other printer errors - show persistent warning and continue
-              _isPrinterReady = false;
-              _persistentErrorMessage = '⚠️ Printer error: ${printerStatus.errorCode.getName()}. Printing is disabled.';
-              debugPrint('Printer status error: ${printerStatus.errorCode.getName()} - continuing without printing');
-            }
-          } catch (e, stackTrace) {
-            // Connection test failed - show persistent error and continue
-            _isPrinterReady = false;
-            _persistentErrorMessage = '⚠️ Cannot connect to printer. Please check connection. Printing is disabled.';
-            debugPrint('Printer connection test failed: $e');
-            debugPrint('Stack trace: $stackTrace');
-          }
+                if (printerStatus.errorCode == brother.ErrorCode.ERROR_NONE) {
+                  // Printer is reachable and ready
+                  _isPrinterReady = true;
+                  debugPrint('Printer is ready and reachable');
+                } else if (printerStatus.errorCode == brother.ErrorCode.ERROR_COMMUNICATION_ERROR) {
+                  // Printer configured but unreachable - show persistent error and continue
+                  _isPrinterReady = false;
+                  _persistentErrorMessage = 'Printer is unreachable. Please check printer connection. Printing is disabled.';
+                  debugPrint('Printer communication error - continuing without printing capability');
+                } else {
+                  // Other printer errors - show persistent warning and continue
+                  _isPrinterReady = false;
+                  _persistentErrorMessage = 'Printer error: ${printerStatus.errorCode.getName()}. Printing is disabled.';
+                  debugPrint('Printer status error: ${printerStatus.errorCode.getName()} - continuing without printing');
+                }
+              } catch (e, stackTrace) {
+                // Connection test failed - show persistent error and continue
+                _isPrinterReady = false;
+                _persistentErrorMessage = 'Cannot connect to printer. Please check connection. Printing is disabled.';
+                debugPrint('Printer connection test failed: $e');
+                debugPrint('Stack trace: $stackTrace');
+              }
             }
           } catch (e, stackTrace) {
             // Printer configuration error - show persistent error and continue
             _isPrinterReady = false;
-            _persistentErrorMessage = '⚠️ Printer configuration error. Please reconfigure in Admin Dashboard. Printing is disabled.';
+            _persistentErrorMessage = 'Printer configuration error. Please reconfigure in Admin Dashboard. Printing is disabled.';
             debugPrint('Printer configuration error: $e');
             debugPrint('Stack trace: $stackTrace');
           }
         }
-      } else {
-        // Printing not required
-        _isPrinterReady = false;
-        debugPrint('Printing is disabled');
       }
-
       // if this is equal to 'kiosk_dashboard' then skill to kiosk page
       await SecureStorageService.saveLastKioskAccess('kiosk_dashboard');
 

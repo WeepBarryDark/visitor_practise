@@ -29,7 +29,7 @@ class KioskDeliveriesMain extends StatelessWidget {
           child: KioskBody(
             topLogoBytes: kioskDeliveriesController.topLogo!,
             siteTitle: siteTitle,
-            printReady: true,
+            printReady: kioskDeliveriesController.isPrinterReady,
             supervisorName: supervisor,
             menuContent: Padding(
               padding: const EdgeInsets.all(16),

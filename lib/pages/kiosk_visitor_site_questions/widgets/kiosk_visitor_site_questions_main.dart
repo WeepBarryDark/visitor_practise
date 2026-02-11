@@ -26,7 +26,7 @@ class KioskVisitorSiteQuestionsMain extends StatelessWidget {
           child: KioskBody(
               topLogoBytes: kioskVisitorSiteQuestionsController.topLogo!,
               siteTitle: kioskVisitorSiteQuestionsController.getSiteTitle(),
-              printReady: true,
+              printReady: kioskVisitorSiteQuestionsController.isPrinterReady,
               supervisorName: kioskVisitorSiteQuestionsController.visitorData?.contactDetailName,
               menuContent: Padding(
                 padding: const EdgeInsets.all(16),
@@ -161,31 +161,21 @@ class KioskVisitorSiteQuestionsMain extends StatelessWidget {
                         ),
                         const Spacer(),
                         FilledButton(
-                          onPressed: (kioskVisitorSiteQuestionsController.generatingBadge ||
-                                  !kioskVisitorSiteQuestionsController.allAnswersYes)
+                          onPressed: !kioskVisitorSiteQuestionsController.allAnswersYes
                               ? null
-                              : () async {
-                                  final success = await kioskVisitorSiteQuestionsController.proceedToBadge(context);
+                              : () {
+                                  final success = kioskVisitorSiteQuestionsController.validateAndProceed(context);
                                   if (success && context.mounted) {
                                     Navigator.pushNamed(
                                       context,
                                       AppRoutes.kioskVisitorFinalBadge,
                                       arguments: {
-                                        'visitorData': kioskVisitorSiteQuestionsController.visitorData,
-                                        'badgeImageBytes': kioskVisitorSiteQuestionsController.badgeImageBytes,
+                                        'siteQuestionsController': kioskVisitorSiteQuestionsController,
                                       },
                                     );
                                   }
                                 },
-                          child: kioskVisitorSiteQuestionsController.generatingBadge
-                              ? const SizedBox(
-                                  height: 18,
-                                  width: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text('Next'),
+                          child: const Text('Next'),
                         ),
                       ],
                     ),

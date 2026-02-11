@@ -3,9 +3,11 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/models/contact_detail.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
+import 'package:visitor_practise/pages/kiosk_dashboard/controllers/kiosk_dashboard_controller.dart';
 import 'package:visitor_practise/services/api_service.dart';
 import 'package:visitor_practise/services/notification_service.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
+import 'package:visitor_practise/services/timezone_service.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/ui_message.dart';
 
 class KioskDeliveriesController extends ChangeNotifier {
@@ -16,6 +18,13 @@ class KioskDeliveriesController extends ChangeNotifier {
   // Current site
   SiteItem? _currentSite;
   SiteItem? get currentSite => _currentSite;
+
+  // Printer settings (from kiosk dashboard)
+  bool _reqPrint = false;
+  bool get reqPrint => _reqPrint;
+
+  bool _isPrinterReady = false;
+  bool get isPrinterReady => _isPrinterReady;
 
   // Contacts
   List<ContactDetail> _availableContacts = [];
@@ -37,9 +46,12 @@ class KioskDeliveriesController extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  // Notification configurations
-  bool sendSms = true;
-  bool sendEmail = true;
+  // Notification configurations (delivery specific)
+  bool _notifyDeliverySms = false;
+  bool get notifyDeliverySms => _notifyDeliverySms;
+
+  bool _notifyDeliveryEmail = false;
+  bool get notifyDeliveryEmail => _notifyDeliveryEmail;
 
   // Get site title for display
   String getSiteTitle() {
@@ -48,7 +60,7 @@ class KioskDeliveriesController extends ChangeNotifier {
   }
 
   /// Initialize with data from KioskDashboardController
-  Future<void> initialiseWithKioskController(dynamic kioskController) async {
+  Future<void> initialiseWithKioskController(KioskDashboardController kioskController) async {
     try {
       // Reuse already-loaded assets from kioskController
       topLogo = kioskController.topLogo;
@@ -56,9 +68,13 @@ class KioskDeliveriesController extends ChangeNotifier {
       background = kioskController.background;
       _currentSite = kioskController.currentSite;
 
-      // Load notification configurations
-      sendSms = kioskController.sendSms;
-      sendEmail = kioskController.sendEmail;
+      // Get printer settings
+      _reqPrint = kioskController.reqPrint;
+      _isPrinterReady = kioskController.isPrinterReady;
+
+      // Load notification configurations (delivery specific)
+      _notifyDeliverySms = kioskController.notifyDeliverySms;
+      _notifyDeliveryEmail = kioskController.notifyDeliveryEmail;
 
       // Load contacts
       await loadContacts();
@@ -137,71 +153,80 @@ class KioskDeliveriesController extends ChangeNotifier {
       final company = orgCtrl.text.trim();
       final siteName = getSiteTitle();
 
-      // Find site supervisor in contacts list
-      ContactDetail? supervisor;
-      if (_currentSite != null && _availableContacts.isNotEmpty) {
-        try {
-          supervisor = _availableContacts.firstWhere(
-            (contact) => contact.name == _currentSite!.siteSupervisor.name,
-          );
-          debugPrint('Found supervisor: ${supervisor.name} (Email: ${supervisor.email}, Phone: ${supervisor.phone})');
-        } catch (e) {
-          debugPrint('Warning: Site supervisor "${_currentSite!.siteSupervisor.name}" not found in contacts list');
-        }
-      }
-
-      if (supervisor == null) {
-        if (context.mounted) context.showError('Site supervisor contact information not available');
+      // Get supervisor info from site
+      if (_currentSite == null) {
+        if (context.mounted) context.showError('Site information not available');
         _submitting = false;
         notifyListeners();
         return false;
       }
 
+      final supervisorId = _currentSite!.siteSupervisor.id.toString();
+      final supervisorName = _currentSite!.siteSupervisor.name;
+
+      // Find supervisor's email and phone from contacts list
+      String supervisorEmail = '';
+      String supervisorPhone = '';
+
+      if (_availableContacts.isNotEmpty) {
+        try {
+          final supervisorContact = _availableContacts.firstWhere(
+            (contact) => contact.id == supervisorId || contact.name == supervisorName,
+          );
+          supervisorEmail = supervisorContact.email;
+          supervisorPhone = supervisorContact.phone;
+        } catch (e) {
+          // Supervisor not found in contacts - notifications will be skipped
+        }
+      }
+
       bool smsSuccess = true;
       bool emailSuccess = true;
+      bool notificationAttempted = false;
 
-      // Send SMS notification if enabled
-      if (sendSms && supervisor.phone.trim().isNotEmpty) {
-        debugPrint('Sending SMS to supervisor: ${supervisor.phone}');
+      // Send SMS notification if enabled and phone available
+      if (_notifyDeliverySms && supervisorPhone.trim().isNotEmpty) {
+        notificationAttempted = true;
         final smsMessage = 'A delivery from $company has arrived at $siteName.';
         smsSuccess = await NotificationService.sendSMS(
-          userId: supervisor.id,
-          phone: supervisor.phone,
+          userId: supervisorId,
+          phone: supervisorPhone,
           message: smsMessage,
           authToken: token,
         );
-        debugPrint('SMS send result: ${smsSuccess ? "SUCCESS" : "FAILED"}');
       }
 
-      // Send Email notification if enabled
-      if (sendEmail && supervisor.email.trim().isNotEmpty) {
-        debugPrint('Sending Email to supervisor: ${supervisor.email}');
+      // Send Email notification if enabled and email available
+      if (_notifyDeliveryEmail && supervisorEmail.trim().isNotEmpty) {
+        notificationAttempted = true;
+        final arrivalTime = TimezoneService.formatLocal(DateTime.now());
         final emailBody = '''
-Hello ${supervisor.name},
+Hello $supervisorName,
 
 A delivery has arrived at $siteName.
 
 Delivery Details:
 - Delivery Company: $company
-- Arrival Time: ${DateTime.now().toString().split('.')[0]}
+- Arrival Time: $arrivalTime
 
 Please collect the delivery from the reception.
 
 This is an automated message from the Visitor Management System.
 ''';
         emailSuccess = await NotificationService.sendEmail(
-          userId: supervisor.id,
-          name: supervisor.name,
-          email: supervisor.email,
-          phone: supervisor.phone,
+          userId: supervisorId,
+          name: supervisorName,
+          email: supervisorEmail,
+          phone: supervisorPhone,
           message: emailBody,
           authToken: token,
         );
-        debugPrint('Email send result: ${emailSuccess ? "SUCCESS" : "FAILED"}');
       }
 
       if (context.mounted) {
-        if (smsSuccess && emailSuccess) {
+        if (!notificationAttempted) {
+          context.showSuccess('Delivery recorded (no notification sent - supervisor contact info not available)');
+        } else if (smsSuccess && emailSuccess) {
           context.showSuccess('Supervisor notified successfully!');
         } else {
           context.showError('Some notifications failed to send');

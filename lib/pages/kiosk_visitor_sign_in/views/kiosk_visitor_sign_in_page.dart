@@ -40,14 +40,14 @@ class _KioskVisitorSignInPageState extends State<KioskVisitorSignInPage> {
     final success = await _kioskVisitorSignIncontroller.initialiseWithKioskController(_kioskController);
 
     if (!success && mounted) {
-      // Show error message
-      final errorMsg = _kioskVisitorSignIncontroller.errorMessage ?? 'Failed to initialize. Please try again.';
+      // Show error message locally
+      final errorMsg = _kioskVisitorSignIncontroller.errorMessage ?? 'Failed to load contacts. Please try again.';
       context.showError(errorMsg);
 
-      // Wait a moment for user to see the error
+      // Wait for user to see the error
       await Future.delayed(const Duration(milliseconds: 1500));
 
-      // Navigate back using pop instead of pushReplacement to avoid creating new instance
+      // Navigate back
       if (mounted) {
         Navigator.pop(context);
       }

@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
+import 'package:visitor_practise/pages/kiosk_dashboard/controllers/kiosk_dashboard_controller.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 
 class KioskContractorSignInController extends ChangeNotifier{
@@ -17,6 +18,13 @@ class KioskContractorSignInController extends ChangeNotifier{
 
   SiteItem? _currentSite;
   SiteItem? get currentSite => _currentSite;
+
+  // Printer settings (from kiosk dashboard)
+  bool _reqPrint = false;
+  bool get reqPrint => _reqPrint;
+
+  bool _isPrinterReady = false;
+  bool get isPrinterReady => _isPrinterReady;
 
   // Get site title for display
   String getSiteTitle() {
@@ -42,13 +50,17 @@ class KioskContractorSignInController extends ChangeNotifier{
   }
 
   /// Initialize with data from KioskDashboardController (more efficient - reuses loaded data)
-  Future<void> initialiseWithKioskController(dynamic kioskController) async {
+  Future<void> initialiseWithKioskController(KioskDashboardController kioskController) async {
     try {
       // Reuse already-loaded assets from kioskController
       topLogo = kioskController.topLogo;
       bottomLogo = kioskController.bottomLogo;
       background = kioskController.background;
       _currentSite = kioskController.currentSite;
+
+      // Get printer settings
+      _reqPrint = kioskController.reqPrint;
+      _isPrinterReady = kioskController.isPrinterReady;
 
       // Load client slug for URL generation
       await _loadClientSlug();

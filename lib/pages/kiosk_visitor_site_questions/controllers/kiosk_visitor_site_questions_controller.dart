@@ -1,15 +1,12 @@
 import 'dart:typed_data';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:visitor_practise/core/models/badge_generator.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
 import 'package:visitor_practise/core/models/site_question.dart';
 import 'package:visitor_practise/core/models/visitor_data.dart';
+import 'package:visitor_practise/pages/kiosk_visitor_sign_in/controllers/kiosk_visitor_sign_in_controller.dart';
 import 'package:visitor_practise/services/api_service.dart';
-import 'package:visitor_practise/services/model_service/badge_generator_service.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
-import 'package:visitor_practise/services/notification_service.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/ui_message.dart';
 
 class KioskVisitorSiteQuestionsController extends ChangeNotifier {
@@ -29,13 +26,44 @@ class KioskVisitorSiteQuestionsController extends ChangeNotifier {
   final Map<String, bool> _answers = {};
   Map<String, bool> get answers => _answers;
 
-  // Badge data
-  Uint8List? _badgeImageBytes;
-  Uint8List? get badgeImageBytes => _badgeImageBytes;
-
   // Current site
   SiteItem? _currentSite;
   SiteItem? get currentSite => _currentSite;
+
+  // Printer settings from kiosk dashboard
+  bool _reqPrint = false;
+  bool get reqPrint => _reqPrint;
+
+  bool _isPrinterReady = false;
+  bool get isPrinterReady => _isPrinterReady;
+
+  // Field configurations from kiosk dashboard - for badge generation
+  bool _reqFullName = true;
+  bool get reqFullName => _reqFullName;
+
+  bool _reqEmail = true;
+  bool get reqEmail => _reqEmail;
+
+  bool _reqPhone = false;
+  bool get reqPhone => _reqPhone;
+
+  bool _reqWorkType = false;
+  bool get reqWorkType => _reqWorkType;
+
+  bool _reqCompany = false;
+  bool get reqCompany => _reqCompany;
+
+  bool _reqAddress = false;
+  bool get reqAddress => _reqAddress;
+
+  bool _reqPersonVisiting = false;
+  bool get reqPersonVisiting => _reqPersonVisiting;
+
+  bool _reqSignInTime = false;
+  bool get reqSignInTime => _reqSignInTime;
+
+  bool _reqVisitorPhoto = false;
+  bool get reqVisitorPhoto => _reqVisitorPhoto;
 
   // Get site title for display
   String getSiteTitle() {
@@ -48,62 +76,91 @@ class KioskVisitorSiteQuestionsController extends ChangeNotifier {
   bool get isCheckingInitial => _isCheckingInitial;
   bool _isLoadingQuestions = false;
   bool get isLoadingQuestions => _isLoadingQuestions;
-  bool _submitting = false;
-  bool get submitting => _submitting;
-  bool _generatingBadge = false;
-  bool get generatingBadge => _generatingBadge;
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  /// Initialize with visitor data from previous page
-  Future<void> initialise(VisitorData visitorData) async {
+  /// Initialize with data from KioskVisitorSignInController (reuses loaded data)
+  /// Returns true if successful, false if failed
+  Future<bool> initialiseWithSignInController(
+    VisitorData visitorData,
+    KioskVisitorSignInController signInController,
+  ) async {
     try {
       _visitorData = visitorData;
 
-      // Load logos and background
-      topLogo = await SecureStorageService.getClientTopLogoBytes().timeout(const Duration(seconds: 5));
-      bottomLogo = await SecureStorageService.getClientBottomLogoBytes().timeout(const Duration(seconds: 5));
-      background = await SecureStorageService.getClientBackgroundBytes().timeout(const Duration(seconds: 5));
+      // Reuse already-loaded assets from signInController
+      topLogo = signInController.topLogo;
+      bottomLogo = signInController.bottomLogo;
+      background = signInController.background;
+      _currentSite = signInController.currentSite;
 
-      // Load current site
-      final savedSelectedSite = await SecureStorageService.getSelectedSite().timeout(const Duration(seconds: 5));
-      if (savedSelectedSite != null && savedSelectedSite.isNotEmpty) {
-        final currentSiteMap = jsonDecode(savedSelectedSite) as Map<String, dynamic>;
-        _currentSite = SiteItem.fromJson(currentSiteMap);
+      // Get printer settings from signInController
+      _reqPrint = signInController.reqPrint;
+      _isPrinterReady = signInController.isPrinterReady;
+
+      // Get field configurations from signInController
+      _reqFullName = signInController.reqFullName;
+      _reqEmail = signInController.reqEmail;
+      _reqPhone = signInController.reqPhone;
+      _reqWorkType = signInController.reqWorkType;
+      _reqCompany = signInController.reqCompany;
+      _reqAddress = signInController.reqAddress;
+      _reqPersonVisiting = signInController.reqPersonVisiting;
+      _reqSignInTime = signInController.reqSignInTime;
+      _reqVisitorPhoto = signInController.reqVisitorPhoto;
+
+      // Load questions - if fails, return false
+      final questionsLoaded = await loadQuestions();
+      if (!questionsLoaded) {
+        _isCheckingInitial = false;
+        notifyListeners();
+        return false;
       }
-
-      // Load questions
-      await loadQuestions();
 
       _isCheckingInitial = false;
       notifyListeners();
+      return true;
     } catch (e) {
       debugPrint('Error during initialization: $e');
       _errorMessage = 'Failed to initialize: $e';
       _isCheckingInitial = false;
       notifyListeners();
+      return false;
     }
   }
 
   /// Load site-specific questions from API
-  Future<void> loadQuestions() async {
-    try {
-      _isLoadingQuestions = true;
-      _errorMessage = null;
+  /// Always succeeds - uses default questions if API fails
+  Future<bool> loadQuestions() async {
+    _isLoadingQuestions = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    // Step 1: Get token
+    final token = await SecureStorageService.getAuthToken().timeout(const Duration(seconds: 5));
+    if (token == null || token.isEmpty) {
+      _questions = SiteQuestion.getDefaultQuestions('the company');
+      _initializeAnswers();
+      _isLoadingQuestions = false;
       notifyListeners();
+      return true;
+    }
 
-      final token = await SecureStorageService.getAuthToken().timeout(const Duration(seconds: 5));
-      if (token == null || token.isEmpty) {
-        // Use default questions if no token
-        _questions = await SiteQuestion.getDefaultQuestions();
-        _initializeAnswers();
-        _isLoadingQuestions = false;
-        notifyListeners();
-        return;
-      }
+    // Step 2: Fetch client name from API (for default questions)
+    String companyName = 'the company';
+    try {
+      final clientData = await ApiService.fetchVisitorClient(token).timeout(const Duration(seconds: 5));
+      companyName = clientData['trading_name']?.toString().trim() ??
+                    clientData['name']?.toString().trim() ??
+                    'the company';
+      debugPrint('Fetched company name: $companyName');
+    } catch (e) {
+      debugPrint('Error fetching client: $e');
+    }
 
-      // Fetch site-specific questions from API
+    // Step 3: Fetch site-specific questions from API
+    try {
       final response = await ApiService.fetchSiteQuestions(
         token,
         _visitorData?.siteId ?? '',
@@ -113,23 +170,23 @@ class KioskVisitorSiteQuestionsController extends ChangeNotifier {
         _questions = response
             .map((json) => SiteQuestion.fromJson(json as Map<String, dynamic>))
             .toList();
+        debugPrint('Loaded ${_questions.length} questions from API');
       } else {
         // Use default questions if API returns empty
-        _questions = await SiteQuestion.getDefaultQuestions();
+        _questions = SiteQuestion.getDefaultQuestions(companyName);
+        debugPrint('Using default questions with company: $companyName');
       }
-
-      _initializeAnswers();
-      _isLoadingQuestions = false;
-      notifyListeners();
     } catch (e) {
-      debugPrint('Error loading questions: $e');
+      debugPrint('Error fetching site questions: $e');
       // Use default questions on error
-      _questions = await SiteQuestion.getDefaultQuestions();
-      _initializeAnswers();
-      _errorMessage = 'Using default questions';
-      _isLoadingQuestions = false;
-      notifyListeners();
+      _questions = SiteQuestion.getDefaultQuestions(companyName);
+      debugPrint('Using default questions (error) with company: $companyName');
     }
+
+    _initializeAnswers();
+    _isLoadingQuestions = false;
+    notifyListeners();
+    return true;
   }
 
   /// Initialize answers map with null values
@@ -164,144 +221,9 @@ class KioskVisitorSiteQuestionsController extends ChangeNotifier {
     return _answers[questionId];
   }
 
-  /// Submit sign-in, generate badge and proceed to final badge page
-  Future<bool> proceedToBadge(BuildContext context) async {
-    try {
-      // Validate all answers are Yes
-      if (!allAnswersYes) {
-        if (context.mounted) {
-          context.showError('All questions must be answered "Yes" to proceed');
-        }
-        return false;
-      }
-
-      _submitting = true;
-      _errorMessage = null;
-      notifyListeners();
-
-      // Get auth token
-      final token = await SecureStorageService.getAuthToken().timeout(const Duration(seconds: 5));
-      if (token == null || token.isEmpty) {
-        if (context.mounted) context.showError('Authentication token not found');
-        _submitting = false;
-        notifyListeners();
-        return false;
-      }
-
-      // Build agree data based on question type
-      final agreeData = _buildAgreeData();
-
-      // Generate unique visitor ID
-      final uniqueId = 'VIS${DateTime.now().millisecondsSinceEpoch.toRadixString(16)}';
-
-      // STEP 1: Submit to API (including questions)
-      final response = await ApiService.submitSignInLedger(
-        token: token,
-        siteId: _visitorData!.siteId,
-        name: _visitorData!.fullName,
-        email: _visitorData!.email,
-        questions: agreeData,
-        uniqueId: uniqueId,
-        organisation: _visitorData!.company,
-        phone: _visitorData!.phone,
-        address: _visitorData!.address,
-        workType: _visitorData!.workType,
-        supervisor: _visitorData!.contactDetailName,
-        signInTime: _visitorData!.signInTime,
-        visitorPhotoBytes: _visitorData!.visitorPhotoBytes,
-        visitorPhotoFilename: _visitorData!.visitorPhotoBytes != null ? 'visitor_photo.jpg' : null,
-      );
-
-      // Check for errors
-      if (response.containsKey('error')) {
-        final errorMsg = response['error'].toString();
-        if (context.mounted) context.showError(errorMsg);
-        _errorMessage = errorMsg;
-        _submitting = false;
-        notifyListeners();
-        return false;
-      }
-
-      // Get server-assigned visitor ID
-      final serverVisitorId = response['visitor_id']?.toString() ??
-                             response['unique_id']?.toString() ??
-                             uniqueId;
-
-      // Update visitor data with server ID
-      _visitorData = _visitorData!.copyWith(
-        visitorId: serverVisitorId,
-        siteQuestionAnswers: Map<String, bool>.from(_answers),
-      );
-
-      // STEP 2: Send notifications to Person Visiting
-      if (_visitorData!.sendSms || _visitorData!.sendEmail) {
-        try {
-          await NotificationService.sendSignInNotifications(
-            personVisitingId: _visitorData!.contactDetailId,
-            personVisitingName: _visitorData!.contactDetailName,
-            personVisitingEmail: _visitorData!.contactDetailEmail,
-            personVisitingPhone: _visitorData!.contactDetailPhone,
-            visitorName: _visitorData!.fullName,
-            visitorCompany: _visitorData!.company,
-            visitorEmail: _visitorData!.email,
-            visitorPhone: _visitorData!.phone,
-            siteName: _currentSite?.title ?? 'Site',
-            signInTime: _visitorData!.signInTime,
-            authToken: token,
-            sendSms: _visitorData!.sendSms,
-            sendEmail: _visitorData!.sendEmail,
-          );
-        } catch (e) {
-          debugPrint('Error sending notifications: $e');
-          // Continue even if notifications fail - don't block the sign-in process
-        }
-      }
-
-      // STEP 3: Generate badge
-      _generatingBadge = true;
-      notifyListeners();
-
-      final topLogoBytes = await SecureStorageService.getClientTopLogoBytes().timeout(const Duration(seconds: 5));
-
-      final badgeData = BadgeGenerator(
-        visitorId: serverVisitorId,
-        fullName: _visitorData!.fullName,
-        email: _visitorData!.email,
-        phone: _visitorData!.phone,
-        workType: _visitorData!.workType,
-        company: _visitorData!.company,
-        address: _visitorData!.address,
-        supervisor: _visitorData!.contactDetailName,
-        signInTime: _visitorData!.signInTime,
-        siteName: _currentSite?.title ?? 'Site',
-        clientLogoBytes: topLogoBytes,
-        visitorPhotoBytes: _visitorData!.visitorPhotoBytes,
-      );
-
-      _badgeImageBytes = await BadgeGeneratorService.generateBadgeBytes(badgeData);
-
-      _generatingBadge = false;
-      _submitting = false;
-      notifyListeners();
-
-      return true;
-    } catch (e) {
-      debugPrint('Error submitting sign-in: $e');
-      _errorMessage = 'Failed to submit: $e';
-      _generatingBadge = false;
-      _submitting = false;
-      notifyListeners();
-
-      if (context.mounted) {
-        context.showError('Failed to submit: $e');
-      }
-
-      return false;
-    }
-  }
-
   /// Build agree data based on question type (default vs customized)
-  Map<String, dynamic> _buildAgreeData() {
+  /// Public method so FinalBadgeController can use it for API submission
+  Map<String, dynamic> buildAgreeData() {
     // Check if using customized questions (have form_id)
     final hasCustomQuestions = _questions.isNotEmpty &&
                                _questions.first.formId != null &&
@@ -325,6 +247,25 @@ class KioskVisitorSiteQuestionsController extends ChangeNotifier {
       }
       return agreeMap;
     }
+  }
+
+  /// Validate questions and proceed to final badge page
+  /// Badge generation and API submission moved to FinalBadgeController
+  bool validateAndProceed(BuildContext context) {
+    // Validate all answers are Yes
+    if (!allAnswersYes) {
+      if (context.mounted) {
+        context.showError('All questions must be answered "Yes" to proceed');
+      }
+      return false;
+    }
+
+    // Update visitor data with answers
+    _visitorData = _visitorData!.copyWith(
+      siteQuestionAnswers: Map<String, bool>.from(_answers),
+    );
+
+    return true;
   }
 
   @override

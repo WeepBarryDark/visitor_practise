@@ -58,7 +58,7 @@ class VisitorData {
   final String contactDetailPhone;
 
   /// Visitor photo bytes (optional)
-  /// ⚠️ Note: Photo is stored but NOT embedded in badge
+  ///  Note: Photo is stored but NOT embedded in badge
   final Uint8List? visitorPhotoBytes;
 
   /// Site question answers (question_id → answer)
@@ -72,10 +72,10 @@ class VisitorData {
   final String siteId;
 
   /// Whether to send SMS notifications to Person Visiting
-  final bool sendSms;
+  final bool notifyPersonVisitingSms;
 
   /// Whether to send Email notifications to Person Visiting
-  final bool sendEmail;
+  final bool notifyPersonVisitingEmail;
 
   /// Create VisitorData with all fields
   const VisitorData({
@@ -91,8 +91,8 @@ class VisitorData {
     required this.contactDetailEmail,
     required this.contactDetailPhone,
     required this.siteId,
-    this.sendSms = true,
-    this.sendEmail = true,
+    this.notifyPersonVisitingSms = true,
+    this.notifyPersonVisitingEmail = true,
     this.visitorPhotoBytes,
     this.siteQuestionAnswers = const {},
     this.visitorId,
@@ -112,8 +112,8 @@ class VisitorData {
     String? contactDetailEmail,
     String? contactDetailPhone,
     String? siteId,
-    bool? sendSms,
-    bool? sendEmail,
+    bool? notifyPersonVisitingSms,
+    bool? notifyPersonVisitingEmail,
     Uint8List? visitorPhotoBytes,
     Map<String, bool>? siteQuestionAnswers,
     String? visitorId,
@@ -131,8 +131,8 @@ class VisitorData {
       contactDetailEmail: contactDetailEmail ?? this.contactDetailEmail,
       contactDetailPhone: contactDetailPhone ?? this.contactDetailPhone,
       siteId: siteId ?? this.siteId,
-      sendSms: sendSms ?? this.sendSms,
-      sendEmail: sendEmail ?? this.sendEmail,
+      notifyPersonVisitingSms: notifyPersonVisitingSms ?? this.notifyPersonVisitingSms,
+      notifyPersonVisitingEmail: notifyPersonVisitingEmail ?? this.notifyPersonVisitingEmail,
       visitorPhotoBytes: visitorPhotoBytes ?? this.visitorPhotoBytes,
       siteQuestionAnswers: siteQuestionAnswers ?? this.siteQuestionAnswers,
       visitorId: visitorId ?? this.visitorId,

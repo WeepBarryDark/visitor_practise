@@ -9,7 +9,11 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:support.brother.com)",
       "WebFetch(domain:)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(dart analyze:*)",
+      "Bash(git mv:*)",
+      "Bash(cmd /c:*)",
+      "Bash(/c/Users/weepb/AppData/Local/flutter/bin/flutter analyze)"
     ]
   }
 }

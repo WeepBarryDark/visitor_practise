@@ -49,8 +49,12 @@ class UiMessage {
   }
 
   /// Show this message as a SnackBar
+  /// Clears any existing SnackBars before showing the new one
   void show(BuildContext context) {
     if (!context.mounted) return;
+
+    // Clear existing snackbars to only show the latest one
+    ScaffoldMessenger.of(context).clearSnackBars();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

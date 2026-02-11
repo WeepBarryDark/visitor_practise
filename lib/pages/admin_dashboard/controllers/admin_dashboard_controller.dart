@@ -5,7 +5,6 @@ import 'dart:ui' as ui;
 import 'package:another_brother/printer_info.dart' as brother;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:uuid/uuid.dart';
 import 'package:visitor_practise/core/constants/app_routes.dart';
 import 'package:visitor_practise/core/models/badge_generator.dart';
@@ -19,9 +18,8 @@ import 'package:visitor_practise/services/model_service/badge_generator_service.
 import 'package:visitor_practise/services/model_service/logos_background_service.dart';
 import 'package:visitor_practise/services/model_service/printer_discover_service.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
+import 'package:visitor_practise/services/timezone_service.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/ui_message.dart';
-
-enum PrinterStatus { notConnect, startConnect, failedConnect}
 
 class AdminDashboardController extends ChangeNotifier {
   
@@ -36,7 +34,7 @@ class AdminDashboardController extends ChangeNotifier {
   bool _hasError = false;
   bool get hasError => _hasError;
 
-  bool _wasOnKiosk = false;
+  final bool _wasOnKiosk = false;
   bool get wasOnKiosk => _wasOnKiosk;
 
   bool _isInitializingPrinter = false;
@@ -142,6 +140,10 @@ class AdminDashboardController extends ChangeNotifier {
   void setReqPersonVisiting(bool? v) {
     if (v == null) return;
     reqPersonVisiting = v;
+    if (!reqPersonVisiting) {
+      notifyPersonVisitingSms = false;
+      notifyPersonVisitingEmail = false;
+    }
     notifyListeners();
   }
   void setReqSignTime(bool? v) {
@@ -591,7 +593,7 @@ Future<void> connectToThePrint() async {
         _isInitializedPrinter = true;
         printerIpError = null;
 
-        debugPrint('✅ Connected to printer: $printerName at $printerIp');
+        debugPrint('Connected to printer: $printerName at $printerIp');
 
         // Auto-load paper types from printer
         await _loadPaperTypesFromPrinter(printer);
@@ -659,7 +661,7 @@ Future<void> connectToThePrint() async {
       printerIp = 'Error: $e';
       _isInitializedPrinter = false;
       _connectedPrinter = null;
-      debugPrint('❌ Failed to connect by USB: $e');
+      debugPrint(' Failed to connect by USB: $e');
     } finally {
       _isInitializingPrinter = false;
       notifyListeners();
@@ -1026,7 +1028,11 @@ Future<ui.Image> _generateTestImage() async {
     const uuid = Uuid();
     final sampleVisitorId = uuid.v4().substring(0, 8).toUpperCase(); // Short ID for demo
 
-    final timezoneSnapshot = reqSignInTime ? DateTime.now() : null;
+    // Use TimezoneService for formatted time
+    final formattedTime = reqSignInTime
+        ? TimezoneService.formatLocal(TimezoneService.captureNow().localTime)
+        : null;
+
     final badgeData = BadgeGenerator(
       visitorId: sampleVisitorId,
       fullName: reqFullName ? 'Firstname Lastname' : null,
@@ -1036,10 +1042,20 @@ Future<ui.Image> _generateTestImage() async {
       company: reqCompany ? 'ABC Construction' : null,
       address: reqAddress ? '123 Main St, Sydney' : null,
       supervisor: reqPersonVisiting ? 'Barry Wang' : null,
-      signInTime: timezoneSnapshot == null ? null : DateTime.now().toIso8601String(),
+      signInTime: formattedTime,
       siteName: resolveSiteHeading(currentSite,'Visitor Badge'),
-      clientLogoBytes: topLogo, // Use client logo bytes if available
-      visitorPhotoBytes: reqVisitorPhoto ? Uint8List(1) : null, // Dummy photo data for preview
+      clientLogoBytes: topLogo,
+      visitorPhotoBytes: reqVisitorPhoto ? Uint8List(1) : null,
+      // Field configurations - only show required fields
+      showFullName: reqFullName,
+      showEmail: reqEmail,
+      showPhone: reqPhone,
+      showWorkType: reqWorkType,
+      showCompany: reqCompany,
+      showAddress: reqAddress,
+      showSupervisor: reqPersonVisiting,
+      showSignInTime: reqSignInTime,
+      showVisitorPhoto: reqVisitorPhoto,
     );
 
     // Generate the actual image (same one that will be printed)
@@ -1049,8 +1065,15 @@ Future<ui.Image> _generateTestImage() async {
   }
   
   //------------------------------------------------------------------confirm and go to Kiosk
-  Future<void> confirmToKiosk() async {
-     await _saveVisitorRequirements();
+  Future<bool> confirmToKiosk(BuildContext context) async {
+     if(reqPrint && _connectedPrinter == null) {
+        context.showError('Printing Badge is required, but no printer connect. Please connect to printer');
+        return false;
+     } else {
+        context.showSuccess('Configurations saved. Starting kiosk mode');
+        await _saveVisitorRequirements();
+        return true;
+     }
   }
 
   @override

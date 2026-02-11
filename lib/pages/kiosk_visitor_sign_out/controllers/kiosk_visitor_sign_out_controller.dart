@@ -1,13 +1,16 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
+import 'package:visitor_practise/pages/kiosk_dashboard/controllers/kiosk_dashboard_controller.dart';
 import 'package:visitor_practise/services/api_service.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 import 'package:visitor_practise/services/notification_service.dart';
+import 'package:visitor_practise/services/timezone_service.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/ui_message.dart';
 
-class KioskVisitorSignOutController extends ChangeNotifier{
+class KioskVisitorSignOutController extends ChangeNotifier {
   //Background and Logo------------------------------------
   Uint8List? topLogo;
   Uint8List? bottomLogo;
@@ -19,10 +22,16 @@ class KioskVisitorSignOutController extends ChangeNotifier{
 
   // Get site title for display
   String getSiteTitle() {
-    if (_currentSite == null) return 'Visitor Sign In';
+    if (_currentSite == null) return 'Visitor Sign Out';
     return _currentSite!.displayName;
   }
 
+  // Printer settings (from kiosk dashboard)
+  bool _reqPrint = false;
+  bool get reqPrint => _reqPrint;
+
+  bool _isPrinterReady = false;
+  bool get isPrinterReady => _isPrinterReady;
 
   // Signed in visitors
   List<Map<String, dynamic>> _signedInVisitors = [];
@@ -45,14 +54,17 @@ class KioskVisitorSignOutController extends ChangeNotifier{
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  // Notification configurations
-  bool sendSms = true;
-  bool sendEmail = true;
+  // Notification configurations (from kiosk dashboard)
+  bool _notifyPersonVisitingSms = false;
+  bool get notifyPersonVisitingSms => _notifyPersonVisitingSms;
+
+  bool _notifyPersonVisitingEmail = false;
+  bool get notifyPersonVisitingEmail => _notifyPersonVisitingEmail;
 
   final visitorIDCtl = TextEditingController();
 
-  /// Initialize with data from KioskDashboardController (more efficient - reuses loaded data)
-  Future<void> initialiseWithKioskController(dynamic kioskController) async {
+  /// Initialize with data from KioskDashboardController
+  Future<void> initialiseWithKioskController(KioskDashboardController kioskController) async {
     try {
       // Reuse already-loaded assets from kioskController
       topLogo = kioskController.topLogo;
@@ -60,9 +72,13 @@ class KioskVisitorSignOutController extends ChangeNotifier{
       background = kioskController.background;
       _currentSite = kioskController.currentSite;
 
+      // Get printer settings
+      _reqPrint = kioskController.reqPrint;
+      _isPrinterReady = kioskController.isPrinterReady;
+
       // Load notification configurations
-      sendSms = kioskController.sendSms;
-      sendEmail = kioskController.sendEmail;
+      _notifyPersonVisitingSms = kioskController.notifyPersonVisitingSms;
+      _notifyPersonVisitingEmail = kioskController.notifyPersonVisitingEmail;
 
       // Load signed in visitors
       await loadSignedInVisitors();
@@ -98,14 +114,27 @@ class KioskVisitorSignOutController extends ChangeNotifier{
         siteId: _currentSite?.id ?? '',
       );
 
-      debugPrint('Received ${response.length} signed-in visitors');
-
       // Parse and ensure we use visitor_id (VIS... format)
       _signedInVisitors = response.map((visitor) {
         // IMPORTANT: Use visitor_id (VIS...) NOT database id
         final visitorId = visitor['visitor_id']?.toString() ??
                          visitor['unique_id']?.toString() ??
                          visitor['id']?.toString() ?? '';
+
+        final signInTime = visitor['sign_in_time']?.toString() ??
+                          visitor['created_at']?.toString() ?? '';
+
+        // Format sign in time for display
+        String formattedSignInTime = '';
+        if (signInTime.isNotEmpty) {
+          final parsedTime = DateTime.tryParse(signInTime);
+          if (parsedTime != null) {
+            // Convert UTC to local timezone before formatting
+            formattedSignInTime = TimezoneService.formatLocal(parsedTime.toLocal());
+          } else {
+            formattedSignInTime = signInTime;
+          }
+        }
 
         // Create a normalized visitor map with visitor_id
         return {
@@ -114,11 +143,12 @@ class KioskVisitorSignOutController extends ChangeNotifier{
           'display_name': visitor['full_name']?.toString() ??
                          visitor['name']?.toString() ??
                          'Unnamed Visitor',
-          'display_info': 'ID: $visitorId${visitor['email']?.toString().isNotEmpty == true ? '\n${visitor['email']}' : ''}',
+          'display_info': 'ID: $visitorId'
+              '${visitor['email']?.toString().isNotEmpty == true ? '\nEmail: ${visitor['email']}' : ''}'
+              '${formattedSignInTime.isNotEmpty ? '\nSigned in: $formattedSignInTime' : ''}',
+          'formatted_sign_in_time': formattedSignInTime,
         };
       }).toList();
-
-      debugPrint('Parsed ${_signedInVisitors.length} visitors successfully');
 
       _isLoadingVisitors = false;
       notifyListeners();
@@ -149,8 +179,27 @@ class KioskVisitorSignOutController extends ChangeNotifier{
       notifyListeners();
 
       // Validate visitor ID
-      if (visitorIDCtl.text.trim().isEmpty) {
+      final trimmedId = visitorIDCtl.text.trim();
+      if (trimmedId.isEmpty) {
         if (context.mounted) context.showError('Visitor ID is required');
+        _submitting = false;
+        notifyListeners();
+        return false;
+      }
+
+      // Refresh the signed-in visitors list first
+      await loadSignedInVisitors();
+
+      // Check if visitor is in the current signed-in list
+      final visitorExists = _signedInVisitors.any((v) {
+        final id = v['visitor_id']?.toString().toLowerCase() ?? '';
+        return id == trimmedId.toLowerCase();
+      });
+
+      if (!visitorExists) {
+        if (context.mounted) {
+          context.showError('Visitor not found or already signed out');
+        }
         _submitting = false;
         notifyListeners();
         return false;
@@ -167,38 +216,67 @@ class KioskVisitorSignOutController extends ChangeNotifier{
 
       // Submit sign-out
       final response = await ApiService.signOutVisitor(
-        visitorId: visitorIDCtl.text.trim(),
+        visitorId: trimmedId,
         authToken: token,
       );
 
-      // Check response
-      if (response['success'] == true || response.containsKey('data')) {
-        // Send sign-out notifications
-        try {
-          // Calculate visit duration
-          final signInTime = DateTime.tryParse(_selectedVisitor?['sign_in_time'] ?? '');
-          final signOutTime = DateTime.now();
-          final duration = signInTime != null
-            ? '${signOutTime.difference(signInTime).inMinutes} minutes'
-            : 'Unknown';
+      debugPrint('Sign-out response: $response');
 
-          await NotificationService.sendSignOutNotifications(
-            personVisitingId: _selectedVisitor?['contact_detail_id']?.toString() ?? '',
-            personVisitingName: _selectedVisitor?['contact_detail_name'] ?? '',
-            personVisitingEmail: _selectedVisitor?['contact_detail_email'] ?? '',
-            personVisitingPhone: _selectedVisitor?['contact_detail_phone'] ?? '',
-            visitorName: _selectedVisitor?['full_name'] ?? '',
-            visitorCompany: _selectedVisitor?['company'] ?? '',
-            siteName: _currentSite?.title ?? 'Site',
-            signOutTime: signOutTime.toIso8601String(),
-            duration: duration,
-            authToken: token,
-            sendSms: sendSms,
-            sendEmail: sendEmail,
-          );
-        } catch (e) {
-          debugPrint('Error sending sign-out notifications: $e');
-        }
+      // Check response - only success if API explicitly returns success: true
+      // Also check for error messages like "already signed out", "not found", etc.
+      final message = response['message']?.toString().toLowerCase() ?? '';
+      final hasError = message.contains('already') ||
+                       message.contains('not found') ||
+                       message.contains('invalid') ||
+                       message.contains('error') ||
+                       message.contains('fail');
+
+      if (response['success'] == true && !hasError) {
+        // Send sign-out notifications if configured
+        /*
+        if (_notifyPersonVisitingSms || _notifyPersonVisitingEmail) {
+          try {
+            // Calculate visit duration
+            final signInTimeStr = _selectedVisitor?['sign_in_time']?.toString() ??
+                                 _selectedVisitor?['created_at']?.toString() ?? '';
+            final signInTime = DateTime.tryParse(signInTimeStr);
+            final signOutTime = DateTime.now();
+            String duration = 'Unknown';
+            if (signInTime != null) {
+              final diff = signOutTime.difference(signInTime);
+              if (diff.inHours > 0) {
+                duration = '${diff.inHours}h ${diff.inMinutes % 60}m';
+              } else {
+                duration = '${diff.inMinutes} minutes';
+              }
+            }
+
+            I/flutter (11682): contact_detail_id: null
+            I/flutter (11682): contact_detail_name: null
+            I/flutter (11682): contact_detail_email: null
+            I/flutter (11682): contact_detail_phone: null
+            
+            await NotificationService.sendSignOutNotifications(
+              personVisitingId: _selectedVisitor?['contact_detail_id']?.toString() ?? '',
+              personVisitingName: _selectedVisitor?['contact_detail_name']?.toString() ??
+                                 _selectedVisitor?['supervisor']?.toString() ?? '',
+              personVisitingEmail: _selectedVisitor?['contact_detail_email']?.toString() ?? '',
+              personVisitingPhone: _selectedVisitor?['contact_detail_phone']?.toString() ?? '',
+              visitorName: _selectedVisitor?['full_name']?.toString() ??
+                          _selectedVisitor?['name']?.toString() ?? '',
+              visitorCompany: _selectedVisitor?['company']?.toString() ??
+                             _selectedVisitor?['organisation']?.toString() ?? '',
+              siteName: _currentSite?.title ?? 'Site',
+              signOutTime: TimezoneService.formatLocal(signOutTime),
+              duration: duration,
+              authToken: token,
+              sendSms: _notifyPersonVisitingSms,
+              sendEmail: _notifyPersonVisitingEmail,
+            );
+          } catch (e) {
+            debugPrint('Error sending sign-out notifications: $e');
+          }
+        } */
 
         // Clear form and selected visitor
         visitorIDCtl.clear();
@@ -217,7 +295,9 @@ class KioskVisitorSignOutController extends ChangeNotifier{
 
         return true;
       } else {
-        final errorMsg = response['message']?.toString() ?? 'Failed to sign out visitor';
+        final errorMsg = response['message']?.toString() ??
+                        response['error']?.toString() ??
+                        'Failed to sign out visitor';
         if (context.mounted) context.showError(errorMsg);
         _errorMessage = errorMsg;
         _submitting = false;

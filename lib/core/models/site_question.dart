@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 /// Site Question Model
 /// Represents a question that must be answered during visitor sign-in
 class SiteQuestion {
@@ -16,25 +14,9 @@ class SiteQuestion {
   });
 
   /// Default site safety questions (used when site has no custom questions)
-  /// Dynamically retrieves company name from client data
-  static Future<List<SiteQuestion>> getDefaultQuestions() async {
-    // Get company name from client data
-    String companyName = 'the company';
-    try {
-      //final clientJson = await SecureStorageService.getClient();
-      final clientJson = [];
-      if (clientJson.isNotEmpty) {
-        final client = jsonDecode(clientJson as String) as Map<String, dynamic>;
-        // Use trading_name if available, otherwise fall back to name
-        companyName = client['trading_name']?.toString().trim() ??
-                      client['name']?.toString().trim() ??
-                      'the company';
-      }
-    } catch (e) {
-      // If error occurs, use default company name
-      companyName = 'the company';
-    }
-
+  /// companyName should be fetched from API: fetchVisitorClient
+  static List<SiteQuestion> getDefaultQuestions(String companyName) {
+    final name = companyName.trim().isEmpty ? 'the company' : companyName;
     return [
       SiteQuestion(
         id: '1',
@@ -53,12 +35,12 @@ class SiteQuestion {
       ),
       SiteQuestion(
         id: '4',
-        text: 'Be escorted by an authorised $companyName representative at all times.',
+        text: 'Be escorted by an authorised $name representative at all times.',
         options: ['Yes', 'No'],
       ),
       SiteQuestion(
         id: '5',
-        text: 'In the event of fire or emergency evacuation, follow the instructions of $companyName representative.',
+        text: 'In the event of fire or emergency evacuation, follow the instructions of $name representative.',
         options: ['Yes', 'No'],
       ),
       SiteQuestion(

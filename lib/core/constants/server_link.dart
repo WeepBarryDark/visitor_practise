@@ -140,4 +140,28 @@ Report any incidents / accident immediately.
   },
   "unique_id": "VIS693611ca241d7"
 }
+
+//---------------------------------------------------- visitor
+
+ ===============================
+I/flutter (11682): {"count":7,"events":[{"id":340328,"project_id":1,"name":"Visitor - thjk","email":"ghjj@qq.com","company":"","phone":"","visitor_id":"VIS698c6198c3456","project_name":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","sign_in":"2026-02-11T11:01:44+00:00","sign_out":""},{"id":340330,"project_id":1,"name":"Visitor - hhdsn","email":"djsj@qq.com","company":"","phone":"","visitor_id":"VIS698c689f6c0bf","project_name":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","sign_in":"2026-02-11T11:31:43+00:00","sign_out":""},{"id":340333,"project_id":1,"name":"Visitor - weffk","email":"wepgg@qq.com","company":"","phone":"","visitor_id":"VIS698c6bc5ce3b5","project_name":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","sign_in":"2026-02-11T11:45:09+00:00","sign_out":""},{"id":340335,"project_id":1,"name":"Visitor - ghjj","email":"thii@qq.com","company":"","phone":"","visitor_id":"VIS698c6de066093"
+I/flutter (11682): === Signed In Visitors API Response ===
+I/flutter (11682): Site ID: 1
+I/flutter (11682): Response count: 7
+I/flutter (11682): Raw response: [{"id":340328,"project_id":1,"name":"Visitor - thjk","email":"ghjj@qq.com","company":"","phone":"","visitor_id":"VIS698c6198c3456","project_name":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","sign_in":"2026-02-11T11:01:44+00:00","sign_out":""},{"id":340330,"project_id":1,"name":"Visitor - hhdsn","email":"djsj@qq.com","company":"","phone":"","visitor_id":"VIS698c689f6c0bf","project_name":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","sign_in":"2026-02-11T11:31:43+00:00","sign_out":""},{"id":340333,"project_id":1,"name":"Visitor - weffk","email":"wepgg@qq.com","company":"","phone":"","visitor_id":"VIS698c6bc5ce3b5","project_name":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","sign_in":"2026-02-11T11:45:09+00:00","sign_out":""},{"id":340335,"project_id":1,"name":"Visitor - ghjj","email":"thii@qq.com","company":"","phone":"","visitor_id":"VIS698c6de066093","proj
+I/flutter (11682): =======================================
+I/flutter (11682): --- Visitor ---
+I/flutter (11682): {"id":340328,"project_id":1,"name":"Visitor - thjk","email":"ghjj@qq.com","company":"","phone":"","visitor_id":"VIS698c6198c3456","project_name":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","sign_in":"2026-02-11T11:01:44+00:00","sign_out":""}
+I/flutter (11682): --- Visitor ---
+I/flutter (11682): {"id":340330,"project_id":1,"name":"Visitor - hhdsn","email":"djsj@qq.com","company":"","phone":"","visitor_id":"VIS698c689f6c0bf","project_name":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","sign_in":"2026-02-11T11:31:43+00:00","sign_out":""}
+I/flutter (11682): --- Visitor ---
+I/flutter (11682): {"id":340333,"project_id":1,"name":"Visitor - weffk","email":"wepgg@qq.com","company":"","phone":"","visitor_id":"VIS698c6bc5ce3b5","project_name":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","sign_in":"2026-02-11T11:45:09+00:00","sign_out":""}
+I/flutter (11682): --- Visitor ---
+I/flutter (11682): {"id":340335,"project_id":1,"name":"Visitor - ghjj","email":"thii@qq.com","company":"","phone":"","visitor_id":"VIS698c6de066093","project_name":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","sign_in":"2026-02-11T11:54:08+00:00","sign_out":""}
+I/flutter (11682): --- Visitor ---
+I/flutter (11682): {"id":340336,"project_id":1,"name":"Visitor - ghjj","email":"ghj@dftu.com","company":"","phone":"","visitor_id":"VIS698c6df049f20","project_name":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","sign_in":"2026-02-11T11:54:24+00:00","sign_out":""}
+I/flutter (11682): --- Visitor ---
+I/flutter (11682): {"id":340338,"project_id":1,"name":"Visitor - hsjz","email":"syhsj@qq.com","company":"shj","phone":"044867","visitor_id":"VIS698c6f8de0677","project_name":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","sign_in":"2026-02-11T12:01:18+00:00","sign_out":""}
+I/flutter (11682): --- Visitor ---
+I/flutter (11682): {"id":340342,"project_id":1,"name":"Visitor - dbs","email":"hxjxj@qq.com","company":"shhz","phone":"76","visitor_id":"VIS698c71e4d9b19","project_name":"1002567 Thirroul Development - Alternate Loc 1002567 Thirroul Development - Alternate Loc","sign_in":"2026-02-11T12:11:17+00:00","sign_out":""}
 */

@@ -28,7 +28,7 @@ class KioskVisitorSignOutMain extends StatelessWidget {
           child: KioskBody(
               topLogoBytes: kioskVisitorSignOutController.topLogo!,
               siteTitle: kioskVisitorSignOutController.getSiteTitle(),
-              printReady: true,
+              printReady: kioskVisitorSignOutController.isPrinterReady,
               supervisorName: kioskVisitorSignOutController.currentSite?.siteSupervisor.name,
               menuContent: Padding(
                 padding: const EdgeInsets.all(16),

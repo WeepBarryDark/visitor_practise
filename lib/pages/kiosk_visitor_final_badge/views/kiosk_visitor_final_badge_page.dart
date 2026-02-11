@@ -1,11 +1,10 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:visitor_practise/core/models/visitor_data.dart';
 import 'package:visitor_practise/core/responsive/app_breakpoints.dart';
 import 'package:visitor_practise/pages/kiosk_visitor_final_badge/controllers/kiosk_visitor_final_badge_controller.dart';
 import 'package:visitor_practise/pages/kiosk_visitor_final_badge/widgets/kiosk_visitor_final_badge_main.dart';
+import 'package:visitor_practise/pages/kiosk_visitor_site_questions/controllers/kiosk_visitor_site_questions_controller.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/background_image_parent.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/kiosk_guard_parent.dart';
@@ -19,10 +18,16 @@ class KioskVisitorFinalBadgePage extends StatefulWidget {
 }
 
 class _KioskVisitorFinalBadgePageState extends State<KioskVisitorFinalBadgePage> {
-
-  late final KioskVisitorFinalBadgeController _kioskVisitorFinalBadgeController;
+  late final KioskVisitorFinalBadgeController _controller;
   String _screenSize = 'medium';
   bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = KioskVisitorFinalBadgeController();
+    _loadScreenSize();
+  }
 
   @override
   void didChangeDependencies() {
@@ -31,13 +36,10 @@ class _KioskVisitorFinalBadgePageState extends State<KioskVisitorFinalBadgePage>
     if (!_initialized) {
       // Get arguments from navigation
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-      final visitorData = args['visitorData'] as VisitorData;
-      final badgeImageBytes = args['badgeImageBytes'] as Uint8List;
+      final siteQuestionsController = args['siteQuestionsController'] as KioskVisitorSiteQuestionsController;
 
-      // Initialize controller with arguments
-      _kioskVisitorFinalBadgeController = KioskVisitorFinalBadgeController();
-      _kioskVisitorFinalBadgeController.initialise(visitorData, badgeImageBytes, context);
-      _loadScreenSize();
+      // Initialize with data from site questions controller
+      _controller.initialiseWithSiteQuestionsController(siteQuestionsController, context);
       _initialized = true;
     }
   }
@@ -60,7 +62,7 @@ class _KioskVisitorFinalBadgePageState extends State<KioskVisitorFinalBadgePage>
 
   @override
   void dispose() {
-    _kioskVisitorFinalBadgeController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -71,17 +73,17 @@ class _KioskVisitorFinalBadgePageState extends State<KioskVisitorFinalBadgePage>
     final maxBodyWidth = AppBreakpoints.getContentWidth(width, screenSize: _screenSize);
 
     return ListenableBuilder(
-      listenable: _kioskVisitorFinalBadgeController,
+      listenable: _controller,
       builder: (context, child) {
-        if (_kioskVisitorFinalBadgeController.isCheckingInitial) {
+        if (_controller.isCheckingInitial) {
           return const LoadingCircleInterface();
         }
 
         return BackgroundImageParent(
-          backgroundBytes: _kioskVisitorFinalBadgeController.background!,
+          backgroundBytes: _controller.background!,
           mainWidget: KioskGuardParent(
             child: KioskVisitorFinalBadgeMain(
-              kioskVisitorFinalBadgeController: _kioskVisitorFinalBadgeController,
+              kioskVisitorFinalBadgeController: _controller,
               maxBodyWidth: maxBodyWidth,
             ),
           ),

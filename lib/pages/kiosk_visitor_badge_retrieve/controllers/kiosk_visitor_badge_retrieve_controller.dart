@@ -6,10 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/models/printer_paper_type.dart';
 import 'package:visitor_practise/core/models/printer_progress.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
+import 'package:visitor_practise/pages/kiosk_dashboard/controllers/kiosk_dashboard_controller.dart';
 import 'package:visitor_practise/services/api_service.dart';
 import 'package:visitor_practise/core/models/badge_generator.dart';
 import 'package:visitor_practise/services/model_service/badge_generator_service.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
+import 'package:visitor_practise/services/timezone_service.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/ui_message.dart';
 
 class KioskVisitorBadgeRetrieveController extends ChangeNotifier{
@@ -21,6 +23,24 @@ class KioskVisitorBadgeRetrieveController extends ChangeNotifier{
   // Current site
   SiteItem? _currentSite;
   SiteItem? get currentSite => _currentSite;
+
+  // Printer settings (from kiosk dashboard)
+  bool _reqPrint = false;
+  bool get reqPrint => _reqPrint;
+
+  bool _isPrinterReady = false;
+  bool get isPrinterReady => _isPrinterReady;
+
+  // Field configurations (from kiosk dashboard) - for default badge preview
+  bool _reqFullName = true;
+  bool _reqEmail = true;
+  bool _reqPhone = false;
+  bool _reqWorkType = false;
+  bool _reqCompany = false;
+  bool _reqAddress = false;
+  bool _reqPersonVisiting = false;
+  bool _reqSignInTime = false;
+  bool _reqVisitorPhoto = false;
 
   // Get site title for display
   String getSiteTitle() {
@@ -63,7 +83,7 @@ class KioskVisitorBadgeRetrieveController extends ChangeNotifier{
   final visitorIdCtrl = TextEditingController();
 
   /// Initialize with data from KioskDashboardController (more efficient - reuses loaded data)
-  Future<void> initialiseWithKioskController(dynamic kioskController) async {
+  Future<void> initialiseWithKioskController(KioskDashboardController kioskController) async {
     try {
       // Reuse already-loaded assets from kioskController
       topLogo = kioskController.topLogo;
@@ -71,8 +91,26 @@ class KioskVisitorBadgeRetrieveController extends ChangeNotifier{
       background = kioskController.background;
       _currentSite = kioskController.currentSite;
 
+      // Get printer settings
+      _reqPrint = kioskController.reqPrint;
+      _isPrinterReady = kioskController.isPrinterReady;
+
+      // Get field configurations for default badge preview
+      _reqFullName = kioskController.reqFullName;
+      _reqEmail = kioskController.reqEmail;
+      _reqPhone = kioskController.reqPhone;
+      _reqWorkType = kioskController.reqWorkType;
+      _reqCompany = kioskController.reqCompany;
+      _reqAddress = kioskController.reqAddress;
+      _reqPersonVisiting = kioskController.reqPersonVisiting;
+      _reqSignInTime = kioskController.reqSignInTime;
+      _reqVisitorPhoto = kioskController.reqVisitorPhoto;
+
       // Load signed in visitors
       await loadSignedInVisitors();
+
+      // Generate default badge preview
+      await _generateDefaultBadgePreview();
 
       _isCheckingInitial = false;
       notifyListeners();
@@ -80,6 +118,45 @@ class KioskVisitorBadgeRetrieveController extends ChangeNotifier{
       debugPrint('Error during initialization: $e');
       _isCheckingInitial = false;
       notifyListeners();
+    }
+  }
+
+  /// Generate default badge preview based on required fields
+  Future<void> _generateDefaultBadgePreview() async {
+    try {
+      final topLogoBytes = await SecureStorageService.getClientTopLogoBytes().timeout(const Duration(seconds: 5));
+
+      final formattedTime = _reqSignInTime
+          ? TimezoneService.formatLocal(DateTime.now())
+          : null;
+
+      final badgeData = BadgeGenerator(
+        visitorId: 'VIS000000000000',
+        fullName: _reqFullName ? 'Visitor Name' : null,
+        email: _reqEmail ? 'visitor@example.com' : null,
+        phone: _reqPhone ? '+61 400 000 000' : null,
+        workType: _reqWorkType ? 'Work Type' : null,
+        company: _reqCompany ? 'Company Name' : null,
+        address: _reqAddress ? '123 Example Street' : null,
+        supervisor: _reqPersonVisiting ? 'Supervisor Name' : null,
+        signInTime: formattedTime,
+        siteName: _currentSite?.title ?? 'Site',
+        clientLogoBytes: topLogoBytes,
+        visitorPhotoBytes: null,
+        showFullName: _reqFullName,
+        showEmail: _reqEmail,
+        showPhone: _reqPhone,
+        showWorkType: _reqWorkType,
+        showCompany: _reqCompany,
+        showAddress: _reqAddress,
+        showSupervisor: _reqPersonVisiting,
+        showSignInTime: _reqSignInTime,
+        showVisitorPhoto: _reqVisitorPhoto,
+      );
+
+      _badgePreviewBytes = await BadgeGeneratorService.generateBadgeBytes(badgeData);
+    } catch (e) {
+      debugPrint('Error generating default badge preview: $e');
     }
   }
 
@@ -124,8 +201,6 @@ class KioskVisitorBadgeRetrieveController extends ChangeNotifier{
         };
       }).toList();
 
-      debugPrint('Parsed ${_signedInVisitors.length} visitors successfully');
-
       _isLoadingVisitors = false;
       notifyListeners();
     } catch (e) {
@@ -133,6 +208,34 @@ class KioskVisitorBadgeRetrieveController extends ChangeNotifier{
       _errorMessage = 'Error loading visitors: $e';
       _isLoadingVisitors = false;
       notifyListeners();
+    }
+  }
+
+  /// Look up visitor by ID (from QR scan or manual input)
+  Future<void> lookupVisitorById(String visitorId, BuildContext context) async {
+    if (visitorId.trim().isEmpty) {
+      if (context.mounted) {
+        context.showError('Please enter a visitor ID');
+      }
+      return;
+    }
+
+    final trimmedId = visitorId.trim();
+    visitorIdCtrl.text = trimmedId;
+
+    // Try to find visitor in already loaded list
+    final found = _signedInVisitors.where((v) {
+      final id = v['visitor_id']?.toString() ?? '';
+      return id.toLowerCase() == trimmedId.toLowerCase();
+    }).toList();
+
+    if (found.isNotEmpty) {
+      await selectVisitor(found.first, context);
+    } else {
+      // Visitor not found in current site's signed-in list
+      if (context.mounted) {
+        context.showError('Visitor ID not found in signed-in visitors');
+      }
     }
   }
 
@@ -157,7 +260,8 @@ class KioskVisitorBadgeRetrieveController extends ChangeNotifier{
     }
   }
 
-  /// Generate badge preview
+  /// Generate badge preview from selected visitor data
+  /// Shows all available fields from JSON (ignores required info settings)
   Future<void> generateBadgePreview(BuildContext context) async {
     if (_selectedVisitor == null) return;
 
@@ -169,25 +273,62 @@ class KioskVisitorBadgeRetrieveController extends ChangeNotifier{
       // Get logo bytes
       final topLogoBytes = await SecureStorageService.getClientTopLogoBytes().timeout(const Duration(seconds: 5));
 
-      // Create BadgeGenerator model
       // IMPORTANT: Use visitor_id (VIS...) NOT database id
       final visitorId = _selectedVisitor!['visitor_id']?.toString() ??
                        _selectedVisitor!['unique_id']?.toString() ??
                        _selectedVisitor!['id']?.toString() ?? '';
 
+      // Get values from visitor data
+      final fullName = _selectedVisitor!['full_name']?.toString() ??
+                      _selectedVisitor!['name']?.toString();
+      final email = _selectedVisitor!['email']?.toString();
+      final phone = _selectedVisitor!['phone']?.toString() ??
+                   _selectedVisitor!['mobile']?.toString();
+      final workType = _selectedVisitor!['work_type']?.toString() ??
+                      _selectedVisitor!['type']?.toString();
+      final company = _selectedVisitor!['company']?.toString() ??
+                     _selectedVisitor!['organisation']?.toString();
+      final address = _selectedVisitor!['address']?.toString();
+      final supervisor = _selectedVisitor!['contact_detail_name']?.toString() ??
+                        _selectedVisitor!['supervisor']?.toString();
+
+      // Format sign in time (convert UTC to local timezone)
+      final signInTimeStr = _selectedVisitor!['sign_in']?.toString() ??
+                           _selectedVisitor!['sign_in_time']?.toString();
+      String? formattedSignInTime;
+      if (signInTimeStr != null && signInTimeStr.isNotEmpty) {
+        final parsedTime = DateTime.tryParse(signInTimeStr);
+        if (parsedTime != null) {
+          // Convert UTC to local timezone before formatting
+          final localTime = parsedTime.toLocal();
+          formattedSignInTime = TimezoneService.formatLocal(localTime);
+        }
+      }
+
+      // Show fields based on whether they have data (ignore required settings)
       final badgeData = BadgeGenerator(
         visitorId: visitorId,
-        fullName: _selectedVisitor!['full_name']?.toString() ?? _selectedVisitor!['name']?.toString() ?? '',
-        email: _selectedVisitor!['email']?.toString() ?? '',
-        phone: _selectedVisitor!['phone']?.toString() ?? _selectedVisitor!['mobile']?.toString() ?? '',
-        workType: _selectedVisitor!['work_type']?.toString() ?? _selectedVisitor!['type']?.toString() ?? '',
-        company: _selectedVisitor!['company']?.toString() ?? _selectedVisitor!['organisation']?.toString() ?? '',
-        address: _selectedVisitor!['address']?.toString() ?? '',
-        supervisor: _selectedVisitor!['contact_detail_name']?.toString() ?? '',
-        signInTime: _selectedVisitor!['sign_in_time']?.toString() ?? '',
+        fullName: fullName,
+        email: email,
+        phone: phone,
+        workType: workType,
+        company: company,
+        address: address,
+        supervisor: supervisor,
+        signInTime: formattedSignInTime,
         siteName: _currentSite?.title ?? 'Site',
         clientLogoBytes: topLogoBytes,
         visitorPhotoBytes: null, // Photo not stored in signed-in visitors data
+        // Show all fields that have data
+        showFullName: fullName != null && fullName.isNotEmpty,
+        showEmail: email != null && email.isNotEmpty,
+        showPhone: phone != null && phone.isNotEmpty,
+        showWorkType: workType != null && workType.isNotEmpty,
+        showCompany: company != null && company.isNotEmpty,
+        showAddress: address != null && address.isNotEmpty,
+        showSupervisor: supervisor != null && supervisor.isNotEmpty,
+        showSignInTime: formattedSignInTime != null && formattedSignInTime.isNotEmpty,
+        showVisitorPhoto: false, // No photo available in reprint
       );
 
       _badgePreviewBytes = await BadgeGeneratorService.generateBadgeBytes(badgeData);

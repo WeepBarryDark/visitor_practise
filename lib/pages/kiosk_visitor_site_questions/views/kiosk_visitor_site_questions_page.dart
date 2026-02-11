@@ -1,14 +1,17 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:visitor_practise/core/constants/app_routes.dart';
 import 'package:visitor_practise/core/models/visitor_data.dart';
 import 'package:visitor_practise/core/responsive/app_breakpoints.dart';
+import 'package:visitor_practise/pages/kiosk_visitor_sign_in/controllers/kiosk_visitor_sign_in_controller.dart';
 import 'package:visitor_practise/pages/kiosk_visitor_site_questions/controllers/kiosk_visitor_site_questions_controller.dart';
 import 'package:visitor_practise/pages/kiosk_visitor_site_questions/widgets/kiosk_visitor_site_questions_main.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/background_image_parent.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/kiosk_guard_parent.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/loading_circle_interface.dart';
+import 'package:visitor_practise/shared_widgets/parent_widgets/ui_message.dart';
 
 class KioskVisitorSiteQuestionPage extends StatefulWidget {
   const KioskVisitorSiteQuestionPage({super.key});
@@ -18,15 +21,14 @@ class KioskVisitorSiteQuestionPage extends StatefulWidget {
 }
 
 class _KioskVisitorSiteQuestionPageState extends State<KioskVisitorSiteQuestionPage> {
-
-  late final KioskVisitorSiteQuestionsController _kioskVisitorSignIncontroller;
+  late final KioskVisitorSiteQuestionsController _controller;
   String _screenSize = 'medium';
   bool _initialized = false;
 
   @override
   void initState() {
     super.initState();
-    _kioskVisitorSignIncontroller = KioskVisitorSiteQuestionsController();
+    _controller = KioskVisitorSiteQuestionsController();
     _loadScreenSize();
   }
 
@@ -35,10 +37,37 @@ class _KioskVisitorSiteQuestionPageState extends State<KioskVisitorSiteQuestionP
     super.didChangeDependencies();
 
     if (!_initialized) {
-      // Get visitor data from navigation arguments
-      final visitorData = ModalRoute.of(context)!.settings.arguments as VisitorData;
-      _kioskVisitorSignIncontroller.initialise(visitorData);
+      // Get arguments from navigation
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      final visitorData = args['visitorData'] as VisitorData;
+      final signInController = args['signInController'] as KioskVisitorSignInController;
+
+      // Initialize with data from sign-in controller
+      _initializeController(visitorData, signInController);
       _initialized = true;
+    }
+  }
+
+  /// Initialize controller and handle errors
+  Future<void> _initializeController(VisitorData visitorData, KioskVisitorSignInController signInController) async {
+    final success = await _controller.initialiseWithSignInController(visitorData, signInController);
+
+    if (!success && mounted) {
+      // Show error message locally
+      final errorMsg = _controller.errorMessage ?? 'Failed to load site questions. Please try again.';
+      context.showError(errorMsg);
+
+      // Wait for user to see the error
+      await Future.delayed(const Duration(milliseconds: 1500));
+
+      // Navigate back to dashboard
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.kioskDashboard,
+          (route) => false,
+        );
+      }
     }
   }
 
@@ -58,25 +87,30 @@ class _KioskVisitorSiteQuestionPageState extends State<KioskVisitorSiteQuestionP
     }
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     // Use screen size setting from storage
     final width = MediaQuery.of(context).size.width;
     final maxBodyWidth = AppBreakpoints.getContentWidth(width, screenSize: _screenSize);
-    
+
     return ListenableBuilder(
-      listenable: _kioskVisitorSignIncontroller,
+      listenable: _controller,
       builder: (context, child) {
-        if (_kioskVisitorSignIncontroller.isCheckingInitial) {
+        if (_controller.isCheckingInitial) {
           return const LoadingCircleInterface();
         }
 
         return BackgroundImageParent(
-          backgroundBytes: _kioskVisitorSignIncontroller.background!,
+          backgroundBytes: _controller.background!,
           mainWidget: KioskGuardParent(
             child: KioskVisitorSiteQuestionsMain(
-              kioskVisitorSiteQuestionsController: _kioskVisitorSignIncontroller,
+              kioskVisitorSiteQuestionsController: _controller,
               maxBodyWidth: maxBodyWidth,
             ),
           ),

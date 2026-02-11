@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -8,9 +7,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:visitor_practise/core/models/contact_detail.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
 import 'package:visitor_practise/core/models/visitor_data.dart';
+import 'package:visitor_practise/pages/kiosk_dashboard/controllers/kiosk_dashboard_controller.dart';
 import 'package:visitor_practise/services/api_service.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 import 'package:visitor_practise/services/network_service.dart';
+import 'package:visitor_practise/services/timezone_service.dart';
 import 'package:visitor_practise/services/helper/validation_helper.dart';
 import 'package:visitor_practise/services/helper/image_helper.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/ui_message.dart';
@@ -27,22 +28,27 @@ class KioskVisitorSignInController extends ChangeNotifier {
   bool _submitting = false;
   bool get submitting => _submitting;
 
+  //-------------------------------------all status
+  // Printer settings
+  bool reqPrint = false;
+  bool isPrinterReady = false;
+
   // Field configurations (from KioskDashboard) - loaded during initialization
+  bool reqFullName = true;
+  bool reqEmail = true;
   bool reqPhone = false;
+  bool reqWorkType = false;
   bool reqCompany = false;
   bool reqAddress = false;
-  bool reqWorkType = false;
-  bool reqSupervisor = false;
+  bool reqPersonVisiting = false;
+  bool reqSignInTime = false;
   bool reqVisitorPhoto = false;
-  bool showPhone = false;
-  bool showCompany = false;
-  bool showAddress = false;
-  bool showWorkType = false;
 
   // Notification configurations
-  bool sendSms = true;
-  bool sendEmail = true;
+  bool notifyPersonVisitingSms = false;
+  bool notifyPersonVisitingEmail = false;
 
+  //-----------------------------------------------------
   // Contact details
   List<ContactDetail> _availableContacts = [];
   List<ContactDetail> get availableContacts => _availableContacts;
@@ -86,29 +92,29 @@ class KioskVisitorSignInController extends ChangeNotifier {
 
   /// Initialize with data from KioskDashboardController (more efficient - reuses loaded data)
   /// Returns true if successful, false if failed
-  Future<bool> initialiseWithKioskController(dynamic kioskController) async {
+  Future<bool> initialiseWithKioskController(KioskDashboardController kioskController) async {
+    topLogo = kioskController.topLogo;
+    bottomLogo = kioskController.bottomLogo;
+    background = kioskController.background;
     try {
       // Reuse already-loaded assets from kioskController
-      topLogo = kioskController.topLogo;
-      bottomLogo = kioskController.bottomLogo;
-      background = kioskController.background;
       _currentSite = kioskController.currentSite;
-
+      // Print setting
+      reqPrint = kioskController.reqPrint;
+      isPrinterReady = kioskController.isPrinterReady;
       // Load field configurations from kioskController
+      reqFullName = kioskController.reqFullName;
+      reqEmail = kioskController.reqEmail;
       reqPhone = kioskController.reqPhone;
       reqCompany = kioskController.reqCompany;
       reqAddress = kioskController.reqAddress;
       reqWorkType = kioskController.reqWorkType;
-      reqSupervisor = kioskController.reqSupervisor;
+      reqPersonVisiting = kioskController.reqPersonVisiting;
+      reqSignInTime = kioskController.reqSignInTime;
       reqVisitorPhoto = kioskController.reqVisitorPhoto;
-      showPhone = kioskController.showPhone;
-      showCompany = kioskController.showCompany;
-      showAddress = kioskController.showAddress;
-      showWorkType = kioskController.showWorkType;
 
-      // Load notification configurations
-      sendSms = kioskController.sendSms;
-      sendEmail = kioskController.sendEmail;
+      notifyPersonVisitingEmail = kioskController.notifyPersonVisitingEmail;
+      notifyPersonVisitingSms = kioskController.notifyPersonVisitingSms;
 
       // Load contacts - if fails, return false
       final contactsLoaded = await loadContacts();
@@ -118,13 +124,15 @@ class KioskVisitorSignInController extends ChangeNotifier {
         return false;
       }
 
-      // Auto-fill and update sign-in time
-      signInTimeCtrl.text = DateTime.now().toIso8601String();
+      // Auto-fill and update sign-in time using TimezoneService
+      final snapshot = TimezoneService.captureNow();
+      signInTimeCtrl.text = TimezoneService.formatLocal(snapshot.localTime);
 
-      // Start timer to update time every second (cancel old timer first to prevent memory leak)
+      // Start timer to update time every second
       _timeUpdateTimer?.cancel();
       _timeUpdateTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        signInTimeCtrl.text = DateTime.now().toIso8601String();
+        final currentSnapshot = TimezoneService.captureNow();
+        signInTimeCtrl.text = TimezoneService.formatLocal(currentSnapshot.localTime);
         notifyListeners();
       });
 
@@ -166,10 +174,6 @@ class KioskVisitorSignInController extends ChangeNotifier {
 
       // Fetch contacts from API
       final response = await ApiService.fetchVisitorContacts(token);
-      debugPrint('---------------------------');
-      debugPrint(jsonEncode(response));
-
-
       if (response['data'] != null) {
         final List<dynamic> contactsData = response['data'] as List<dynamic>;
         _availableContacts = contactsData
@@ -255,17 +259,17 @@ class KioskVisitorSignInController extends ChangeNotifier {
       fullName: fullNameCtrl.text.trim(),
       email: emailCtrl.text.trim(),
       phone: phoneCtrl.text.trim(),
+      workType: workTypeCtrl.text.trim(),
       company: companyCtrl.text.trim(),
       address: addressCtrl.text.trim(),
-      workType: workTypeCtrl.text.trim(),
       signInTime: signInTimeCtrl.text,
       contactDetailId: _selectedContact?.id ?? '',
       contactDetailName: _selectedContact?.name ?? '',
       contactDetailEmail: _selectedContact?.email ?? '',
       contactDetailPhone: _selectedContact?.phone ?? '',
       siteId: _currentSite!.id,
-      sendSms: sendSms,
-      sendEmail: sendEmail,
+      notifyPersonVisitingSms: notifyPersonVisitingSms,
+      notifyPersonVisitingEmail: notifyPersonVisitingEmail,
       visitorPhotoBytes: _visitorPhotoBytes,
     );
   }
@@ -338,7 +342,7 @@ class KioskVisitorSignInController extends ChangeNotifier {
         return false;
       }
 
-      if (reqSupervisor && _selectedContact == null) {
+      if (reqPersonVisiting && _selectedContact == null) {
         if (context.mounted) context.showError('Please select who you are visiting');
         _submitting = false;
         notifyListeners();

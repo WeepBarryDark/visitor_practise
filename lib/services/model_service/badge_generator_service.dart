@@ -175,41 +175,41 @@ class BadgeGeneratorService {
     );
     yPosition += 30;
 
-    // Visitor information fields
-    if (data.fullName != null) {
+    // Visitor information fields - only show if configured and has value
+    if (data.showFullName && data.fullName != null && data.fullName!.isNotEmpty) {
       yPosition = _drawField(canvas, 'Full Name', data.fullName!, yPosition);
     }
 
-    if (data.email != null) {
+    if (data.showEmail && data.email != null && data.email!.isNotEmpty) {
       yPosition = _drawField(canvas, 'Email', data.email!, yPosition);
     }
 
-    if (data.phone != null) {
+    if (data.showPhone && data.phone != null && data.phone!.isNotEmpty) {
       yPosition = _drawField(canvas, 'Phone', data.phone!, yPosition);
     }
 
-    if (data.workType != null) {
+    if (data.showWorkType && data.workType != null && data.workType!.isNotEmpty) {
       yPosition = _drawField(canvas, 'Work Type', data.workType!, yPosition);
     }
 
-    if (data.company != null) {
+    if (data.showCompany && data.company != null && data.company!.isNotEmpty) {
       yPosition = _drawField(canvas, 'Company', data.company!, yPosition);
     }
 
-    if (data.address != null) {
+    if (data.showAddress && data.address != null && data.address!.isNotEmpty) {
       yPosition = _drawField(canvas, 'Address', data.address!, yPosition);
     }
-    
-    if (data.supervisor != null) {
+
+    if (data.showSupervisor && data.supervisor != null && data.supervisor!.isNotEmpty) {
       yPosition = _drawField(canvas, 'Person Visiting', data.supervisor!, yPosition);
     }
 
-    if (data.signInTime != null) {
+    if (data.showSignInTime && data.signInTime != null && data.signInTime!.isNotEmpty) {
       yPosition = _drawField(canvas, 'Sign In', data.signInTime!, yPosition);
     }
 
-    // Show photo uploaded indicator if visitor photo was captured
-    if (data.visitorPhotoBytes != null) {
+    // Show photo uploaded indicator if visitor photo was captured and configured to show
+    if (data.showVisitorPhoto && data.visitorPhotoBytes != null) {
       yPosition = _drawField(canvas, 'Photo', 'Photo Uploaded', yPosition);
     }
 
@@ -456,35 +456,40 @@ class BadgeGeneratorService {
     );
     yPosition += 30;
 
-    void addField(String label, String? value) {
-      if (value != null && value.isNotEmpty) {
+    void addField(String label, String? value, bool show) {
+      if (show && value != null && value.isNotEmpty) {
         yPosition += _measureFieldHeight(label, value);
       }
     }
 
-    addField('Full Name', data.fullName);
-    addField('Email', data.email);
-    addField('Phone', data.phone);
-    addField('Work Type', data.workType);
-    addField('Company', data.company);
-    addField('Address', data.address);
-    addField('Person Visiting', data.supervisor);
-    addField('Sign In', data.signInTime);
+    addField('Full Name', data.fullName, data.showFullName);
+    addField('Email', data.email, data.showEmail);
+    addField('Phone', data.phone, data.showPhone);
+    addField('Work Type', data.workType, data.showWorkType);
+    addField('Company', data.company, data.showCompany);
+    addField('Address', data.address, data.showAddress);
+    addField('Person Visiting', data.supervisor, data.showSupervisor);
+    addField('Sign In', data.signInTime, data.showSignInTime);
 
-    // Add visitor photo field height if photo was captured
-    if (data.visitorPhotoBytes != null) {
-      addField('Photo', 'Photo Uploaded');
+    // Add visitor photo field height if photo was captured and configured to show
+    if (data.showVisitorPhoto && data.visitorPhotoBytes != null) {
+      yPosition += _measureFieldHeight('Photo', 'Photo Uploaded');
     }
 
+    // Extra spacing before QR code
     yPosition += 40;
+    // QR code
     yPosition += qrCodeSize;
+    // ID text below QR
+    yPosition += 20; // spacing
     yPosition += _measureTextHeight(
       'ID: ${data.visitorId}',
       _idTextStyle,
       maxWidth: badgeWidth - 80,
     );
 
-    yPosition += 60;
+    // Bottom padding
+    yPosition += 80;
     return math.max(yPosition, badgeHeight);
   }
 

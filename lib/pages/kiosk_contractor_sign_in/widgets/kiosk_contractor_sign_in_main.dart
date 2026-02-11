@@ -26,7 +26,7 @@ class KioskContractorSignInMain extends StatelessWidget {
           child: KioskBody(
               topLogoBytes: kioskContractorSignInController.topLogo!,
               siteTitle: kioskContractorSignInController.getSiteTitle(),
-              printReady: true,
+              printReady: kioskContractorSignInController.isPrinterReady,
               supervisorName: kioskContractorSignInController.currentSite?.siteSupervisor.name,
               menuContent: Card(
                 child: Padding(
@@ -91,8 +91,7 @@ class KioskContractorSignInMain extends StatelessWidget {
                                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                                         ),
                                         textAlign: TextAlign.center,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
+                                        overflow: TextOverflow.visible,
                                       ),
                                     ),
                                   ],
