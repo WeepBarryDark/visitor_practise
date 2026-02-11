@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -6,7 +5,6 @@ import 'package:visitor_practise/core/models/site_item.dart';
 import 'package:visitor_practise/pages/kiosk_dashboard/controllers/kiosk_dashboard_controller.dart';
 import 'package:visitor_practise/services/api_service.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
-import 'package:visitor_practise/services/notification_service.dart';
 import 'package:visitor_practise/services/timezone_service.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/ui_message.dart';
 

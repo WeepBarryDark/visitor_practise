@@ -35,7 +35,7 @@ class KioskContractorSignInController extends ChangeNotifier{
   // status
   bool _isCheckingInitial = true;
   bool get isCheckingInitial => _isCheckingInitial;
-  bool _submitting = false;
+  final bool _submitting = false;
   bool get submitting => _submitting;
 
   /// Build contractor registration URL

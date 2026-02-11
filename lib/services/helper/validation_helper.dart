@@ -285,9 +285,9 @@ class ValidationHelper {
     if (date.isEmpty) return false;
 
     try {
-      final parsed = DateTime.parse(date);
-      return parsed != null;
-    } catch (e) {
+      DateTime.parse(date);
+      return true;
+    } catch (_) {
       return false;
     }
   }

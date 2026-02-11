@@ -206,8 +206,7 @@ class KioskVisitorSiteQuestionsController extends ChangeNotifier {
   /// Check if all questions have been answered
   bool get allQuestionsAnswered {
     if (_questions.isEmpty) return false;
-    return _answers.length == _questions.length &&
-        _answers.values.every((answer) => answer != null);
+    return _answers.length == _questions.length;
   }
 
   /// Check if all answers are Yes (true)
@@ -268,8 +267,4 @@ class KioskVisitorSiteQuestionsController extends ChangeNotifier {
     return true;
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }

@@ -8,7 +8,6 @@ import 'package:visitor_practise/core/models/printer_paper_type.dart';
 import 'package:visitor_practise/core/models/printer_progress.dart';
 import 'package:visitor_practise/core/models/visitor_data.dart';
 import 'package:visitor_practise/core/models/site_item.dart';
-import 'package:visitor_practise/core/constants/app_routes.dart';
 import 'package:visitor_practise/pages/kiosk_visitor_site_questions/controllers/kiosk_visitor_site_questions_controller.dart';
 import 'package:visitor_practise/services/api_service.dart';
 import 'package:visitor_practise/services/model_service/badge_generator_service.dart';

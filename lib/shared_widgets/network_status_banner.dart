@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/services/network_service.dart';
-import 'package:visitor_practise/core/theme/app_theme.dart';
 
 /// Network status banner that shows at the top when offline
 /// Automatically displays/hides based on connectivity changes
@@ -18,7 +17,6 @@ class NetworkStatusBanner extends StatefulWidget {
 
 class _NetworkStatusBannerState extends State<NetworkStatusBanner> {
   bool _isOnline = true;
-  String _connectionType = '';
 
   @override
   void initState() {
@@ -29,24 +27,20 @@ class _NetworkStatusBannerState extends State<NetworkStatusBanner> {
 
   Future<void> _checkInitialStatus() async {
     final isConnected = await NetworkService.isConnected();
-    final connectionType = await NetworkService.getConnectionType();
 
     if (mounted) {
       setState(() {
         _isOnline = isConnected;
-        _connectionType = connectionType;
       });
     }
   }
 
   void _listenToConnectivityChanges() {
     NetworkService.onConnectivityChanged.listen((isConnected) async {
-      final connectionType = await NetworkService.getConnectionType();
 
       if (mounted) {
         setState(() {
           _isOnline = isConnected;
-          _connectionType = connectionType;
         });
       }
     });

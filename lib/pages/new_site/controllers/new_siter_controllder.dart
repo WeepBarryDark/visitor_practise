@@ -104,7 +104,6 @@ class NewSiterControllder extends ChangeNotifier {
       final lastAccess = await SecureStorageService.getLastKioskAccess().timeout(const Duration(seconds: 50));
       if (lastAccess == 'kiosk_dashboard')
       {
-        //TODO
         final token = await SecureStorageService.getAuthToken().timeout(const Duration(seconds: 50));
         final alreadyAuthed = token != null && token.isNotEmpty;
 

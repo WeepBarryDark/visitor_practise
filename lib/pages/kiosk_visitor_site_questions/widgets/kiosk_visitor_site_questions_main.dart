@@ -78,72 +78,68 @@ class KioskVisitorSiteQuestionsMain extends StatelessWidget {
                                   ],
                                 ),
                                 const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: RadioListTile<bool>(
-                                        title: const Text('Yes'),
-                                        value: true,
-                                        groupValue: answer,
-                                        onChanged: (value) {
-                                          if (value != null) {
-                                            kioskVisitorSiteQuestionsController.setAnswer(
-                                              question.id,
-                                              value,
-                                            );
-                                          }
-                                        },
-                                        activeColor: AppTheme.successColor,
-                                        dense: true,
-                                        contentPadding: EdgeInsets.zero,
+                                RadioGroup<bool>(
+                                  groupValue: answer ?? false,
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      kioskVisitorSiteQuestionsController.setAnswer(
+                                        question.id,
+                                        value,
+                                      );
+                                    }
+                                  },
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: RadioListTile<bool>(
+                                          title: const Text('Yes'),
+                                          value: true,
+                                          toggleable: false,
+                                          activeColor: AppTheme.successColor,
+                                          dense: true,
+                                          contentPadding: EdgeInsets.zero,
+                                        ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      child: RadioListTile<bool>(
-                                        title: const Text('No'),
-                                        value: false,
-                                        groupValue: answer,
-                                        onChanged: (value) {
-                                          if (value != null) {
-                                            kioskVisitorSiteQuestionsController.setAnswer(
-                                              question.id,
-                                              value,
-                                            );
-                                          }
-                                        },
-                                        activeColor: Colors.red,
-                                        dense: true,
-                                        contentPadding: EdgeInsets.zero,
+                                      Expanded(
+                                        child: RadioListTile<bool>(
+                                          title: const Text('No'),
+                                          value: false,
+                                          toggleable: false,
+                                          activeColor: Colors.red,
+                                          dense: true,
+                                          contentPadding: EdgeInsets.zero,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                         );
-                      }).toList(),
+                      }),
                     // Validation message
                     if (kioskVisitorSiteQuestionsController.allQuestionsAnswered &&
                         !kioskVisitorSiteQuestionsController.allAnswersYes)
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(16),
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
-                          border: Border.all(color: Colors.red),
+                          color: Colors.red.shade50,
+                          border: Border.all(color: Colors.red, width: 2),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.error_outline, color: Colors.red),
+                            const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 'All questions must be answered "Yes" to proceed',
                                 style: TextStyle(
-                                  color: Colors.red.withOpacity(0.9),
-                                  fontWeight: FontWeight.w600,
+                                  color: Colors.red.shade800,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
                                 ),
                               ),
                             ),

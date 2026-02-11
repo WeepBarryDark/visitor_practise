@@ -56,7 +56,6 @@ class _AuthPageState extends State<AuthPage> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     _authController.dispose();
     super.dispose();
   }

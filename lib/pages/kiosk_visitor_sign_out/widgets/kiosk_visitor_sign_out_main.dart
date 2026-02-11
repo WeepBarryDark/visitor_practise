@@ -155,9 +155,8 @@ class KioskVisitorSignOutMain extends StatelessWidget {
                           return null;
                         },
                       ),
-
+                    /*
                     // Show scanned status (QR scanning not yet implemented)
-                    if (false) ...[
                       const SizedBox(height: 12),
                       Container(
                         padding: const EdgeInsets.all(14),
@@ -193,7 +192,7 @@ class KioskVisitorSignOutMain extends StatelessWidget {
                         ),
                       ),
                     ],
-
+                      */
                     const SizedBox(height: 24),
                     //One share all Kiosk button group
                     Row(
