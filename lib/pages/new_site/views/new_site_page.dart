@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/navigation/main_scaffold.dart';
-import 'package:visitor_practise/core/responsive/aap_breakpoints.dart';
+import 'package:visitor_practise/core/responsive/app_breakpoints.dart';
 import 'package:visitor_practise/pages/new_site/controllers/new_siter_controllder.dart';
 import 'package:visitor_practise/pages/new_site/widgets/new_site_main.dart';
+import 'package:visitor_practise/services/secure_storage_service.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/background_image_parent.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/loading_circle_interface.dart';
 
@@ -14,15 +17,33 @@ class NewSitePage extends StatefulWidget {
 
 class _NewSitePageState extends State<NewSitePage> {
   late final NewSiterControllder _newSiteController;
+  String _screenSize = 'medium';
 
   @override
   void initState() {
     super.initState();
-    _newSiteController = NewSiterControllder(); 
+    _newSiteController = NewSiterControllder();
     //Step 1 check condition, if jump to kiosk, as before unexpected jump out
     _newSiteController.initialise(
       onAlreadyRedirect: (nextRoute) async => _handleNavigationKiosk(nextRoute),
     );
+    _loadScreenSize();
+  }
+
+  Future<void> _loadScreenSize() async {
+    try {
+      final settings = await SecureStorageService.getAdminDashboardSettings();
+      if (settings != null && settings.isNotEmpty) {
+        final data = jsonDecode(settings) as Map<String, dynamic>;
+        if (mounted) {
+          setState(() {
+            _screenSize = data['screen_size'] ?? 'medium';
+          });
+        }
+      }
+    } catch (e) {
+      // Use default if loading fails
+    }
   }
 
   Future<void> _handleNavigationKiosk(String nextRoute) async {
@@ -48,7 +69,7 @@ class _NewSitePageState extends State<NewSitePage> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final maxBodyWidth = AppBreakpoints.getContentWidth(width);
+    final maxBodyWidth = AppBreakpoints.getContentWidth(width, screenSize: _screenSize);
 
     return AnimatedBuilder(
         animation: _newSiteController,
@@ -56,7 +77,7 @@ class _NewSitePageState extends State<NewSitePage> {
           if (_newSiteController.isCheckingInitialSite) {
             return const LoadingCircleInterface();
           }
-          
+
           return AppShell(
             title: 'Sites List',
             child: BackgroundImageParent(

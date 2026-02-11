@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/constants/server_link.dart';
-import 'package:visitor_practise/core/responsive/aap_breakpoints.dart';
+import 'package:visitor_practise/core/responsive/app_breakpoints.dart';
 
 import 'package:visitor_practise/pages/auth/widgets/tablet_auth_main.dart';
 import 'package:visitor_practise/pages/auth/controllers/auth_controller.dart';

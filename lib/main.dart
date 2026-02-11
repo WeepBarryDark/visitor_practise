@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:visitor_practise/core/constants/app_routes.dart';
-import 'package:visitor_practise/core/navigation/main_scaffold.dart';
-
+import 'package:visitor_practise/services/network_service.dart';
+import 'package:visitor_practise/shared_widgets/network_status_banner.dart';
 
 //theme
 import 'package:visitor_practise/core/theme/app_theme.dart';
@@ -17,12 +17,14 @@ import 'package:visitor_practise/pages/kiosk_visitor_sign_in/views/kiosk_visitor
 import 'package:visitor_practise/pages/kiosk_visitor_sign_out/views/kiosk_visitor_sign_out_page.dart';
 import 'package:visitor_practise/pages/kiosk_visitor_site_questions/views/kiosk_visitor_site_questions_page.dart';
 import 'package:visitor_practise/pages/new_site/views/new_site_page.dart';
-
-import 'package:visitor_practise/pages/new_site/views/new_site_page.dart';
-
 import 'package:visitor_practise/pages/kiosk_dashboard/views/kiosk_dashboard_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize network monitoring
+  await NetworkService.initialize();
+
   runApp(const WorxVistor());
 }
 
@@ -39,6 +41,11 @@ class WorxVistor extends StatelessWidget {
       //initial route - Splash Screen checks auth
       initialRoute: '/',
 
+      // Wrap all pages with network status banner
+      builder: (context, child) {
+        return NetworkStatusBanner(child: child ?? const SizedBox());
+      },
+
       routes: {
         '/': (context) => const AuthPage(),
         AppRoutes.adminDashboard: (context) => const AdminDashboardPage(),
@@ -47,6 +54,8 @@ class WorxVistor extends StatelessWidget {
         AppRoutes.kioskDashboard: (context) => const KioskDashboardPage(),
 
         AppRoutes.kioskVisitorSignIn: (context) => const KioskVisitorSignInPage(),
+        AppRoutes.kioskVisitorSiteQuestions: (context) => const KioskVisitorSiteQuestionPage(),
+        AppRoutes.kioskVisitorFinalBadge: (context) => const KioskVisitorFinalBadgePage(),
         AppRoutes.kioskVisitorSignOut: (context) => const KioskVisitorSignOutPage(),
         AppRoutes.kioskDeliveries: (context) => const KioskDeliveriesPage(),
         AppRoutes.kioskContractorSignIn: (context) => const KioskContractorSignInPage(),

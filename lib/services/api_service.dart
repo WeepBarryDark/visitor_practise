@@ -492,6 +492,45 @@ class ApiService {
   /// POST /api/visitor/send_email
   /// Payload: {user_id, name, email, phone, message, logo_url, visitor_photo}
   /// Returns: true if email sent successfully
+  /// Send SMS notification
+  /// POST /api/visitor/send_sms
+  /// Payload: {user_id, mobile, message}
+  static Future<bool> sendSMS({
+    required String token,
+    required String userId,
+    required String mobile,
+    required String message,
+  }) async {
+    try {
+      final url = '$baseUrl/api/visitor/send_sms';
+      final payload = {
+        'user_id': userId,
+        'mobile': mobile,
+        'message': message,
+      };
+
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode(payload),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (e) {
+      debugPrint('Error sending SMS: $e');
+      return false;
+    }
+  }
+
+  /// Send Email notification
+  /// POST /api/visitor/send_email
+  /// Payload: {user_id, name, email, phone, message, logo_url?, visitor_photo?}
   static Future<bool> sendEmail({
     required String token,
     required String userId,
@@ -600,7 +639,118 @@ class ApiService {
   }
 
   // ============================================================================
-  // FETCH SIGNED IN VISITORS
+  // NOTIFICATIONS
+  // ============================================================================
+
+  /// Send notification (SMS or Email)
+  /// POST /api/notifications/send
+  /// Payload: {type: 'sms'|'email', recipient, message, subject?, attachment?}
+  /// Returns: {success: bool, message: string}
+  static Future<Map<String, dynamic>> sendNotification({
+    required String token,
+    required String type, // 'sms' or 'email'
+    required String recipient,
+    required String message,
+    String? subject,
+    Map<String, dynamic>? attachment,
+  }) async {
+    try {
+      final payload = {
+        'type': type,
+        'recipient': recipient,
+        'message': message,
+        if (subject != null) 'subject': subject,
+        if (attachment != null) 'attachment': attachment,
+      };
+
+      final response = await http
+          .post(
+            Uri.parse('${ServerLink.mainServerURL}/api/notifications/send'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode(payload),
+          )
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () {
+              throw Exception('Notification request timed out');
+            },
+          );
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      } else {
+        debugPrint('Notification failed: ${response.statusCode} ${response.body}');
+        return {'success': false, 'message': 'Failed to send notification'};
+      }
+    } catch (e) {
+      debugPrint('Error sending notification: $e');
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  // ============================================================================
+  // DELIVERIES
+  // ============================================================================
+
+  /// Submit delivery registration
+  /// POST /api/deliveries/submit
+  /// Payload: {site_id, delivery_company, recipient_name, recipient_contact, details?, timestamp}
+  /// Returns: {success: bool, message: string, data: {...}}
+  static Future<Map<String, dynamic>> submitDelivery({
+    required String token,
+    required String siteId,
+    required String deliveryCompany,
+    required String recipientName,
+    required String recipientContact,
+    String? details,
+    required String timestamp,
+  }) async {
+    try {
+      final payload = {
+        'site_id': siteId,
+        'delivery_company': deliveryCompany,
+        'recipient_name': recipientName,
+        'recipient_contact': recipientContact,
+        if (details != null && details.isNotEmpty) 'details': details,
+        'timestamp': timestamp,
+      };
+
+      final response = await http
+          .post(
+            Uri.parse('${ServerLink.mainServerURL}/api/deliveries/submit'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode(payload),
+          )
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw Exception('Delivery submission timed out');
+            },
+          );
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return data;
+      } else {
+        debugPrint('Delivery submission failed: ${response.statusCode} ${response.body}');
+        return {'success': false, 'message': 'Failed to submit delivery'};
+      }
+    } catch (e) {
+      debugPrint('Error submitting delivery: $e');
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  // ============================================================================
+  // FETCH IMAGES
   // ============================================================================
   /// Fetch the main logo or any image from URL
   /// Returns Uint8List if successful, null if failed

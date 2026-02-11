@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/constants/app_routes.dart';
-import 'package:visitor_practise/core/responsive/aap_breakpoints.dart';
+import 'package:visitor_practise/core/responsive/app_breakpoints.dart';
 import 'package:visitor_practise/pages/kiosk_dashboard/controllers/kiosk_dashboard_controller.dart';
 import 'package:visitor_practise/pages/kiosk_dashboard/widgets/kiosk_dashboard_main.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/background_image_parent.dart';
@@ -56,15 +56,19 @@ class _KioskDashboardPageState extends State<KioskDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final maxBodyWidth = AppBreakpoints.getContentWidth(width);
-
     return ListenableBuilder(
       listenable: _kioskDashboardController,
       builder: (context, child) {
         if (_kioskDashboardController.isCheckingInitial) {
           return const LoadingCircleInterface();
         }
+
+        // Use screen size setting from controller
+        final width = MediaQuery.of(context).size.width;
+        final maxBodyWidth = AppBreakpoints.getContentWidth(
+          width,
+          screenSize: _kioskDashboardController.screenSize,
+        );
 
         return BackgroundImageParent(
           backgroundBytes: _kioskDashboardController.background!,

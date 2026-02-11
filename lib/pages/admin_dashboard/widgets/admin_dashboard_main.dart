@@ -3,6 +3,7 @@ import 'package:visitor_practise/pages/admin_dashboard/controllers/admin_dashboa
 import 'package:visitor_practise/pages/admin_dashboard/widgets/badget_preview_card.dart';
 import 'package:visitor_practise/pages/admin_dashboard/widgets/kiosk_admin_password_card.dart';
 import 'package:visitor_practise/pages/admin_dashboard/widgets/print_status_card.dart';
+import 'package:visitor_practise/pages/admin_dashboard/widgets/screen_size_control_card.dart';
 import 'package:visitor_practise/pages/admin_dashboard/widgets/site_information_card.dart';
 import 'package:visitor_practise/pages/admin_dashboard/widgets/visitor_requirement_field_card.dart';
 
@@ -31,6 +32,8 @@ class AdminDashboardMain extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SiteInformationCard(adminController: adminDashboardController),
+                  const SizedBox(height: 16),
+                  ScreenSizeControlCard(adminController: adminDashboardController),
                   const SizedBox(height: 16),
                   KioskAdminPasswordCard(adminController: adminDashboardController),
                   const SizedBox(height: 16),

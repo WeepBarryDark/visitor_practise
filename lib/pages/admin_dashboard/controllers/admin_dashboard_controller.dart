@@ -36,8 +36,6 @@ class AdminDashboardController extends ChangeNotifier {
   bool _hasError = false;
   bool get hasError => _hasError;
 
-  String _statusMessage = "";
-
   bool _wasOnKiosk = false;
   bool get wasOnKiosk => _wasOnKiosk;
 
@@ -198,6 +196,10 @@ class AdminDashboardController extends ChangeNotifier {
   bool enableContractorSignOut = false;
   bool enableVisitorRetrieveBadge = false;
 
+  //Screen Size Control-----------------------------------------------------
+  String _screenSize = 'medium'; // compact, medium, large
+  String get screenSize => _screenSize;
+
   void setEnableVisitorDelivery(bool? v) {
     if (v == null) return;
     enableVisitorDelivery = v;
@@ -217,6 +219,19 @@ class AdminDashboardController extends ChangeNotifier {
     if (v == null) return;
     enableVisitorRetrieveBadge = v;
     notifyListeners();
+  }
+
+  Future<void> updateScreenSize(String size) async {
+    if (size != 'compact' && size != 'medium' && size != 'large') {
+      debugPrint('Invalid screen size: $size, defaulting to medium');
+      _screenSize = 'medium';
+    } else {
+      _screenSize = size;
+    }
+    notifyListeners();
+    // Save to storage immediately
+    await _saveVisitorRequirements();
+    debugPrint('Screen size updated and saved: $_screenSize');
   }
   // initialization-----------------------------------------------
   Future<void> initialise ({
@@ -325,13 +340,11 @@ class AdminDashboardController extends ChangeNotifier {
     } on TimeoutException {
       // not sure what to do now, when an error and timeout
       _hasError = true;
-      _statusMessage = 'Request timed out. Please try again.';
       notifyListeners();
       return false;
     } catch (e) {
       // not sure what to do now, when an error and timeout
       _hasError = true;
-      _statusMessage = 'Error while checking existing login. Please start a new session.';
       notifyListeners();
       return false;
     }
@@ -916,6 +929,7 @@ Future<ui.Image> _generateTestImage() async {
       enableContractorSignIn = data['enable_contractor_sign_in'] as bool? ?? false;
       enableContractorSignOut = data['enable_contractor_sign_out'] as bool? ?? false;
       enableVisitorRetrieveBadge = data['enable_visitor_retrieve_badge'] as bool? ?? false;
+      _screenSize = data['screen_size'] as String? ?? 'medium';
     }
   }
 
@@ -941,6 +955,7 @@ Future<ui.Image> _generateTestImage() async {
       'enable_contractor_sign_in' : enableContractorSignIn,
       'enable_contractor_sign_out' : enableContractorSignOut,
       'enable_visitor_retrieve_badge' : enableVisitorRetrieveBadge,
+      'screen_size': _screenSize,
     };
     await SecureStorageService.saveAdminDashboardSettings(jsonEncode(requirements));
   }

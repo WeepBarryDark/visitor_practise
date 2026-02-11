@@ -18,11 +18,39 @@ class AppBreakpoints {
 
   // ========== HELPER METHODS ==========
   /// Get appropriate max width based on screen size
-  static double getContentWidth(double screenWidth) {
-    if (screenWidth < md) return compact;
-    if (screenWidth < lg) return standard;
-    if (screenWidth < xl) return wide;
-    return max;
+  /// Optional screenSize parameter scales the width:
+  /// - 'compact': width / 1.5 (narrower)
+  /// - 'medium': width * 1.0 (normal)
+  /// - 'large': width * 1.3 (wider)
+  static double getContentWidth(double screenWidth, {String screenSize = 'medium'}) {
+    // Get base width based on screen size
+    double baseWidth;
+    if (screenWidth < md) {
+      baseWidth = compact;
+    } else if (screenWidth < lg) {
+      baseWidth = standard;
+    } else if (screenWidth < xl) {
+      baseWidth = wide;
+    } else {
+      baseWidth = max;
+    }
+
+    // Apply scaling based on user preference
+    double scale;
+    switch (screenSize) {
+      case 'compact':
+        scale = 0.6; // Narrower 
+        break;
+      case 'large':
+        scale = 1.0; // Wider
+        break;
+      case 'medium':
+      default:
+        scale = 0.8; // Normal
+        break;
+    }
+
+    return baseWidth * scale;
   }
 
   /// Check if screen is small (mobile)

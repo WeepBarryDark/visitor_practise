@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/pages/kiosk_visitor_badge_retrieve/controllers/kiosk_visitor_badge_retrieve_controller.dart';
 import 'package:visitor_practise/shared_widgets/card_template_widgets/kiosk_body.dart';
+import 'package:visitor_practise/shared_widgets/field_input_widgets/searchable_dropdown_dialog.dart';
 
 class KioskVisitorBadgeRetrieveMain extends StatelessWidget {
   const KioskVisitorBadgeRetrieveMain({
@@ -22,10 +23,10 @@ class KioskVisitorBadgeRetrieveMain extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxBodyWidth),
           child: KioskBody(
-              topLogoBytes: kioskVisitorBadgeRetrieveController.topLogo!, 
-              siteTitle: "test", 
-              printReady: true, 
-              supervisorName: "Barry Wang",
+              topLogoBytes: kioskVisitorBadgeRetrieveController.topLogo!,
+              siteTitle: kioskVisitorBadgeRetrieveController.getSiteTitle(),
+              printReady: true,
+              supervisorName: kioskVisitorBadgeRetrieveController.currentSite?.siteSupervisor.name,
               menuContent: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -62,9 +63,60 @@ class KioskVisitorBadgeRetrieveMain extends StatelessWidget {
                         children: [
                           // Search button first
                           FilledButton.icon(
-                            onPressed: () {print('_showSignedInVisitorsList');},
-                            icon: const Icon(Icons.search, size: 22),
-                            label: const Text('Search Visitor'),
+                            onPressed: kioskVisitorBadgeRetrieveController.isLoadingVisitors
+                                ? null
+                                : () async {
+                                    if (kioskVisitorBadgeRetrieveController.signedInVisitors.isEmpty) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('No signed-in visitors found'),
+                                            backgroundColor: Colors.orange,
+                                          ),
+                                        );
+                                      }
+                                      return;
+                                    }
+
+                                    final selected = await showDialog<Map<String, dynamic>>(
+                                      context: context,
+                                      builder: (context) => SearchableDropdownDialog<Map<String, dynamic>>(
+                                        title: 'Select Visitor for Badge Reprint',
+                                        icon: Icons.person_search,
+                                        items: kioskVisitorBadgeRetrieveController.signedInVisitors,
+                                        searchHint: 'Search by name, ID, or email...',
+                                        emptyMessage: 'No visitors found',
+                                        searchMatcher: (visitor, query) {
+                                          final name = visitor['display_name']?.toString().toLowerCase() ?? '';
+                                          final id = visitor['visitor_id']?.toString().toLowerCase() ?? '';
+                                          final email = visitor['email']?.toString().toLowerCase() ?? '';
+                                          return name.contains(query) || id.contains(query) || email.contains(query);
+                                        },
+                                        itemId: (visitor) => visitor['visitor_id']?.toString() ?? '',
+                                        itemName: (visitor) => visitor['display_name']?.toString() ?? 'Unnamed',
+                                        itemSubtitle: (visitor) => visitor['display_info']?.toString(),
+                                      ),
+                                    );
+
+                                    if (selected != null && context.mounted) {
+                                      await kioskVisitorBadgeRetrieveController.selectVisitor(selected, context);
+                                    }
+                                  },
+                            icon: kioskVisitorBadgeRetrieveController.isLoadingVisitors
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(Icons.search, size: 22),
+                            label: Text(
+                              kioskVisitorBadgeRetrieveController.isLoadingVisitors
+                                  ? 'Loading...'
+                                  : 'Search Visitor',
+                            ),
                             style: FilledButton.styleFrom(
                               minimumSize: const Size(0, 56),
                               padding: const EdgeInsets.symmetric(
@@ -133,7 +185,9 @@ class KioskVisitorBadgeRetrieveMain extends StatelessWidget {
                             ),
                             const SizedBox(height: 20),
                             //One share all Kiosk button group
-                            Row(
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              spacing: 8.0,
                               children: [
                                 OutlinedButton.icon(
                                   onPressed: () => Navigator.pop(context),
@@ -142,8 +196,10 @@ class KioskVisitorBadgeRetrieveMain extends StatelessWidget {
                                 ),
                                 const Spacer(),
                                 FilledButton(
-                                  onPressed: kioskVisitorBadgeRetrieveController.submitting ? null : () => {print('jump to new site with all data')},
-                                  child: kioskVisitorBadgeRetrieveController.submitting
+                                  onPressed: kioskVisitorBadgeRetrieveController.isPrinting
+                                      ? null
+                                      : () => kioskVisitorBadgeRetrieveController.reprintBadge(context),
+                                  child: kioskVisitorBadgeRetrieveController.isPrinting
                                     ? const SizedBox(
                                         height: 18,
                                         width: 18,
@@ -156,7 +212,7 @@ class KioskVisitorBadgeRetrieveMain extends StatelessWidget {
                                       children: [
                                         Icon(Icons.print),
                                         SizedBox(width: 8),
-                                        Text('Submit'),
+                                        Text('Reprint Badge'),
                                       ],
                                     ),
                                 ),

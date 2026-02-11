@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:visitor_practise/core/responsive/aap_breakpoints.dart';
+import 'package:visitor_practise/core/responsive/app_breakpoints.dart';
+import 'package:visitor_practise/pages/kiosk_dashboard/controllers/kiosk_dashboard_controller.dart';
 import 'package:visitor_practise/pages/kiosk_deliveries/controllers/kiosk_deliveries_controller.dart';
 import 'package:visitor_practise/pages/kiosk_deliveries/widgets/kiosk_deliveries_main.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/background_image_parent.dart';
@@ -15,19 +16,25 @@ class KioskDeliveriesPage extends StatefulWidget {
 
 class _KioskDeliveriesPageState extends State<KioskDeliveriesPage> {
   late final KioskDeliveriesController _kioskDeliveriesController;
+  late final KioskDashboardController _kioskController;
+  bool _initialized = false;
 
   @override
-  void initState() {
-    super.initState();
-    _kioskDeliveriesController = KioskDeliveriesController();
-    _kioskDeliveriesController.orgCtrl = TextEditingController();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
 
-    _kioskDeliveriesController.initialise();
+    if (!_initialized) {
+      // Get kioskController from navigation arguments
+      _kioskController = ModalRoute.of(context)!.settings.arguments as KioskDashboardController;
+
+      _kioskDeliveriesController = KioskDeliveriesController();
+      _kioskDeliveriesController.initialiseWithKioskController(_kioskController);
+      _initialized = true;
+    }
   }
 
   @override
   void dispose() {
-    _kioskDeliveriesController.orgCtrl.dispose();
     _kioskDeliveriesController.dispose();
     super.dispose();
   }
@@ -35,15 +42,19 @@ class _KioskDeliveriesPageState extends State<KioskDeliveriesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final maxBodyWidth = AppBreakpoints.getContentWidth(width);
-
     return ListenableBuilder(
       listenable: _kioskDeliveriesController,
       builder: (context, child) {
         if (_kioskDeliveriesController.isCheckingInitial) {
           return const LoadingCircleInterface();
         }
+
+        // Use screen size setting from kiosk controller
+        final width = MediaQuery.of(context).size.width;
+        final maxBodyWidth = AppBreakpoints.getContentWidth(
+          width,
+          screenSize: _kioskController.screenSize,
+        );
 
         return BackgroundImageParent(
           backgroundBytes: _kioskDeliveriesController.background!,

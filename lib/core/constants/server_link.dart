@@ -12,6 +12,9 @@ class ServerLink {
 
   static const String fetchVisitorSites = '${ServerLink.mainServerURL}/api/visitor/sites'; // get sites  {token}
   static const String fetchVisitorContacts = '${ServerLink.mainServerURL}/api/visitor/contacts'; // get contacts  {token}
+  /*
+  {"count":19,"data":[{"id":31,"name":"Luke One","email":"luke.1@neboengineering.com.au","phone":"0404075485","mobile":"0404075485","emergencyContact":"Luke Two","emergencyPhone":null,"workType":{"id":20,"name":"Engineering"},"residency":"Australian Citizen","residencyDetails":null,"residencyExpiry":"2026-02-11T05:49:46+00:00","dob":"1978-10-05T00:00:00+00:00","role":"user","approved":1,"approvalDate":"2026-01-28T05:12:13+00:00","approver":{"id":23,"name":"Hugh Torney"},"status":"Approved","revokeReason":null,"createdOn":"2021-10-05T06:34:45+00:00","active":1},{"id":3231,"name":"David Moodie","email":"david@101design.com.au","phone":"02 4226 2102","mobile":"0402 681 626","emergencyContact":"Good Luck","emergencyPhone":null,"workType":{"id":59,"name":"IT Services"},"residency":"Australian Citizen","residencyDetails":null,"residencyExpiry":"2026-02-11T05:49:46+00:00","dob":"1979-05-28T00:00:00+00:00","role":"admin","approved":1,"approvalDate":"2024-09-09T02:12:47+00:00","approver":{"id":23,"name":"Hugh Torney"},
+  */
   static const String fetchVisitorClient = '${ServerLink.mainServerURL}/api/visitor/client'; // get clients  {token} 
 
   static const String fetchVisitorQuestions = '${ServerLink.mainServerURL}/api/visitor/site_questions'; // post  {token}{"site_id": }

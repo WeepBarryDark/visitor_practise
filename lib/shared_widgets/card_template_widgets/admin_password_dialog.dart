@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:visitor_practise/core/responsive/aap_breakpoints.dart';
+import 'package:visitor_practise/core/responsive/app_breakpoints.dart';
 import 'package:visitor_practise/services/secure_storage_service.dart';
 
 class AdminPasswordDialog extends StatefulWidget {
@@ -100,19 +100,21 @@ class _AdminPasswordDialogState extends State<AdminPasswordDialog> {
                     ),
                   ],
                   const SizedBox(height: 24),
-                  Row(
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    alignment: WrapAlignment.center,
                     children: [
                       OutlinedButton(
                         onPressed: () => Navigator.of(context).pop(false),
                         child: const Text('Cancel'),
                       ),
-                      const Spacer(),
                       FilledButton(
                         onPressed: _loading ? null : _validate,
                         child: const Text('Confirm'),
                       ),
                     ],
-                  ),
+                  )
                 ]
               ),
             ),

@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:another_brother/printer_info.dart' as brother;
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/theme/app_theme.dart';

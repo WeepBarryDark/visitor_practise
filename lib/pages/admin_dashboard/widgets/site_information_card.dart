@@ -32,7 +32,7 @@ class SiteInformationCard extends StatelessWidget {
             Center(
               child: logoBuilder(48, adminController.topLogo!)
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Row(
               children: [
                 Expanded(child: Text('Selected Site', style: tt.titleMedium)),
@@ -51,12 +51,12 @@ class SiteInformationCard extends StatelessWidget {
             const SizedBox(height: 16),
             SiteInfoRow(
               label: 'Site Name',
-              value: adminController.currentSiteMap?['title'],
+              value: adminController.currentSiteMap['title'],
             ),
             const SizedBox(height: 16),
             SiteInfoRow(
               label: 'Address',
-              value: adminController.currentSiteMap?['address'],
+              value: adminController.currentSiteMap['address'],
             ),
             //Site name display
           ],

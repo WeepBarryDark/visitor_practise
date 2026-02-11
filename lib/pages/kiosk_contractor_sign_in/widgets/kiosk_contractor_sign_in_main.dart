@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:visitor_practise/core/constants/app_routes.dart';
 import 'package:visitor_practise/pages/kiosk_contractor_sign_in/controllers/kiosk_contractor_sign_in_controller.dart';
 import 'package:visitor_practise/shared_widgets/card_template_widgets/kiosk_body.dart';
 
@@ -24,9 +25,9 @@ class KioskContractorSignInMain extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: maxBodyWidth),
           child: KioskBody(
               topLogoBytes: kioskContractorSignInController.topLogo!,
-              siteTitle: "test", 
-              printReady: true, 
-              supervisorName: "Barry Wang",
+              siteTitle: kioskContractorSignInController.getSiteTitle(),
+              printReady: true,
+              supervisorName: kioskContractorSignInController.currentSite?.siteSupervisor.name,
               menuContent: Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -67,37 +68,51 @@ class KioskContractorSignInMain extends StatelessWidget {
                           child: Column(
                             children: [
                               QrImageView(
-                                key: ValueKey("www.4399.com"), // Force rebuild when URL changes
-                                data: "www.4399.com",
+                                key: ValueKey(kioskContractorSignInController.contractorUrl), // Force rebuild when URL changes
+                                data: kioskContractorSignInController.contractorUrl,
                                 version: QrVersions.auto,
                                 size: 280,
                                 backgroundColor: Colors.white,
                                 errorCorrectionLevel: QrErrorCorrectLevel.M,
                               ),
                               SizedBox(height: 12),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.link, color: Theme.of(context).colorScheme.primary, size: 20,),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    "www.4399.com",
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(fontFamily: 'monospace', color: Theme.of(context).colorScheme.onSurfaceVariant,),
-                                  ),
-                                ],
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.link, color: Theme.of(context).colorScheme.primary, size: 20,),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        kioskContractorSignInController.contractorUrl,
+                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          fontFamily: 'monospace',
+                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               )
                             ],
                           ),
                         ),
                       ),
                       SizedBox(height: 24),
-                      // Next Visitor Button
+                      // Next Visitor Button - Return to kiosk dashboard for next visitor
                       Center(
                         child: SizedBox(
                           width: maxBodyWidth / 1.5,
                           child: FilledButton.icon(
-                            //onPressed: () => Navigator.pop(context),
-                            onPressed: () => {print('jump out'),},
+                            onPressed: () => Navigator.pushNamedAndRemoveUntil(
+                              context,
+                              AppRoutes.kioskDashboard,
+                              (route) => false,  // Clear navigation stack
+                            ),
                             icon: const Icon(Icons.arrow_forward, size: 22),
                             label: const Text('Next Visitor'),
                             style: FilledButton.styleFrom(

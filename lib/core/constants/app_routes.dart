@@ -8,7 +8,9 @@ class AppRoutes {
   static const String kioskDashboard = '/visitor-kiosk'; //entry point of visitor kiosk
 
   //visitor sign in option
-  static const String kioskVisitorSignIn = '/visitor-sign-in'; 
+  static const String kioskVisitorSignIn = '/visitor-sign-in';
+  static const String kioskVisitorSiteQuestions = '/visitor-site-questions';
+  static const String kioskVisitorFinalBadge = '/visitor-final-badge';
   static const String kioskVisitorSignOut = '/visitor-sign-out';
   static const String kioskDeliveries = '/delivery';
   static const String kioskContractorSignIn = '/user-contractor-in';

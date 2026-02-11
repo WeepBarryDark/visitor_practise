@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:visitor_practise/core/constants/app_routes.dart';
 import 'package:visitor_practise/core/navigation/main_scaffold.dart';
-import 'package:visitor_practise/core/responsive/aap_breakpoints.dart';
+import 'package:visitor_practise/core/responsive/app_breakpoints.dart';
 import 'package:visitor_practise/pages/admin_dashboard/controllers/admin_dashboard_controller.dart';
 import 'package:visitor_practise/pages/admin_dashboard/widgets/admin_dashboard_main.dart';
 import 'package:visitor_practise/shared_widgets/parent_widgets/background_image_parent.dart';
@@ -56,9 +56,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final maxBodyWidth = AppBreakpoints.getContentWidth(width);
-
     return ListenableBuilder (
       listenable: _dashboardController,
       builder: (context, _) {
@@ -66,7 +63,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           return const LoadingCircleInterface();
         }
 
-        return AppShell( 
+        // Apply screenSize to content width
+        final width = MediaQuery.of(context).size.width;
+        final maxBodyWidth = AppBreakpoints.getContentWidth(
+          width,
+          screenSize: _dashboardController.screenSize,
+        );
+
+        return AppShell(
           title: 'Admin Dashboard',
           child:  BackgroundImageParent(
             backgroundBytes: _dashboardController.background!,
